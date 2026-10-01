@@ -1,0 +1,177 @@
+/* 
+   Barkea Resort - Main Stylesheet*/
+/* 
+   General */
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+
+/* 
+   Main Application Layout */
+
+.app-wrapper {
+    min-height: calc(100vh - 56px);
+}
+
+
+/* 
+   Desktop Sidebar */
+
+.sidebar {
+    width: 240px;
+    min-height: calc(100vh - 56px);
+    flex-shrink: 0;
+}
+
+
+/* 
+   Sidebar Navigation
+   Desktop + Mobile Offcanvas */
+
+.sidebar .nav-link,
+.offcanvas .nav-link {
+    color: #343a40;
+    border-radius: 6px;
+    padding: 0.65rem 0.75rem;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active,
+.offcanvas .nav-link:hover,
+.offcanvas .nav-link.active {
+    background-color: #e9ecef;
+    color: #000;
+}
+
+
+/* 
+   Main Content */
+
+.main-content {
+    min-width: 0;
+}
+
+
+/* 
+   Dashboard Cards */
+
+.dashboard-card {
+    border: 1px solid #dee2e6;
+    transition: transform 0.15s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+}
+
+
+/* 
+   Tables */
+
+.table th {
+    white-space: nowrap;
+}
+
+
+/* 
+   Forms */
+
+.form-control:focus,
+.form-select:focus {
+    box-shadow: none;
+}
+
+
+/* 
+   Login Page */
+
+.login-page {
+    min-height: 100vh;
+    background-color: #f0f8ff;
+}
+
+.login-card {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+}
+
+.login-card h1 {
+    font-weight: 700;
+}
+
+.login-card .form-control {
+    min-height: 46px;
+}
+
+.login-card .btn {
+    min-height: 46px;
+}
+
+
+/* 
+   Mobile Offcanvas */
+
+.offcanvas {
+    max-width: 280px;
+}
+
+.offcanvas-title {
+    font-weight: 600;
+}
+
+
+/* 
+   Responsive Design */
+
+@media (max-width: 767.98px) {
+
+    /*
+     * The normal desktop sidebar is hidden by
+     * Bootstrap's d-none d-md-block classes.
+     *
+     * Navigation is available through the
+     * mobile offcanvas menu.
+     */
+
+    .app-wrapper {
+        display: block !important;
+        min-height: calc(100vh - 56px);
+    }
+
+    .main-content {
+        width: 100%;
+        padding: 1rem !important;
+    }
+
+}
+
+
+/* 
+   Very Small Screens*/
+
+@media (max-width: 575.98px) {
+
+    .main-content h1 {
+        font-size: 1.75rem;
+    }
+
+    /*
+     * Prevent tables from breaking the page.
+     * Bootstrap's .table-responsive handles
+     * horizontal scrolling.
+     */
+
+    .table {
+        font-size: 0.9rem;
+    }
+
+}

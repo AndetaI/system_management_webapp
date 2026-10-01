@@ -1,0 +1,13 @@
+```gitignore
+# Environment configuration
+.env
+
+# Composer dependencies
+/vendor/
+
+# Application logs
+/storage/logs/*
+!/storage/logs/.gitkeep
+
+# Log files
+*.log

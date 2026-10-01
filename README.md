@@ -17,6 +17,7 @@ The project follows a layered structure:
 - `security/` - Authentication, authorization and CSRF protection
 - `util/` - Shared utility classes
 - `storage/` - Application-generated files such as logs
+- `tests/` - Files for testing the PDO connection
 
 ## Naming Conventions
 

@@ -124,7 +124,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
 
                     <tbody>
 
-                        <!-- Temporary Task 3 frontend data -->
+                        <!-- Temporary frontend data -->
 
                         <tr>
                             <td>A1</td>

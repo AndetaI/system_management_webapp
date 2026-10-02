@@ -1,0 +1,126 @@
+<?php
+
+declare(strict_types=1);
+
+class UserRepository
+{
+    public function __construct(private PDO $pdo)
+    {
+    }
+
+    public function create(array $data): int
+    {
+        $sql = '
+            INSERT INTO users (
+                username,
+                name,
+                email,
+                password_hash,
+                role,
+                status
+            )
+            VALUES (
+                :username,
+                :name,
+                :email,
+                :password_hash,
+                :role,
+                :status
+            )
+        ';
+
+        $statement = $this->pdo->prepare($sql);
+
+        $statement->execute([
+            'username' => $data['username'],
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password_hash' => $data['password_hash'],
+            'role' => $data['role'],
+            'status' => $data['status'],
+        ]);
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    public function findAll(): array
+    {
+        $sql = '
+            SELECT
+                id,
+                username,
+                name,
+                email,
+                role,
+                status,
+                created_at
+            FROM users
+            ORDER BY id
+        ';
+
+        $statement = $this->pdo->query($sql);
+
+        return $statement->fetchAll();
+    }
+
+    public function findById(int $id): ?array
+    {
+        $sql = '
+            SELECT
+                id,
+                username,
+                name,
+                email,
+                role,
+                status,
+                created_at
+            FROM users
+            WHERE id = :id
+        ';
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute([
+            'id' => $id,
+        ]);
+
+        $user = $statement->fetch();
+
+        return $user === false ? null : $user;
+    }
+
+    public function update(int $id, array $data): bool
+    {
+        $sql = '
+            UPDATE users
+            SET
+                username = :username,
+                name = :name,
+                email = :email,
+                role = :role,
+                status = :status
+            WHERE id = :id
+        ';
+
+        $statement = $this->pdo->prepare($sql);
+
+        return $statement->execute([
+            'username' => $data['username'],
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'role' => $data['role'],
+            'status' => $data['status'],
+            'id' => $id,
+        ]);
+    }
+
+    public function delete(int $id): bool
+    {
+        $sql = 'DELETE FROM users WHERE id = :id';
+
+        $statement = $this->pdo->prepare($sql);
+
+        return $statement->execute([
+            'id' => $id,
+        ]);
+    }
+}

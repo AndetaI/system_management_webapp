@@ -69,6 +69,28 @@ class TeamMemberRepository
         return $statement->fetchAll();
     }
 
+    public function exists(
+    int $teamId,
+    int $userId
+): bool {
+    $sql = '
+        SELECT 1
+        FROM team_members
+        WHERE team_id = :team_id
+          AND user_id = :user_id
+        LIMIT 1
+    ';
+
+    $statement = $this->pdo->prepare($sql);
+
+    $statement->execute([
+        'team_id' => $teamId,
+        'user_id' => $userId,
+    ]);
+
+    return $statement->fetchColumn() !== false;
+}
+
     public function removeMember(int $teamId, int $userId): bool
     {
         $sql = '

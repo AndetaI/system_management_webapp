@@ -129,4 +129,22 @@ class MaterialRepository
             'id' => $id,
         ]);
     }
+
+    public function existsBySupplierId(int $supplierId): bool
+{
+    $sql = '
+        SELECT 1
+        FROM materials
+        WHERE supplier_id = :supplier_id
+        LIMIT 1
+    ';
+
+    $statement = $this->pdo->prepare($sql);
+
+    $statement->execute([
+        'supplier_id' => $supplierId,
+    ]);
+
+    return $statement->fetchColumn() !== false;
+}
 }

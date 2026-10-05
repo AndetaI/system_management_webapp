@@ -88,6 +88,58 @@ class UserRepository
         return $user === false ? null : $user;
     }
 
+    public function findByUsername(string $username): ?array
+    {
+        $sql = '
+            SELECT
+                id,
+                username,
+                name,
+                email,
+                role,
+                status,
+                created_at
+            FROM users
+            WHERE username = :username
+            LIMIT 1
+        ';
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute([
+            'username' => $username,
+        ]);
+
+        $user = $statement->fetch();
+
+        return $user === false ? null : $user;
+    } 
+
+    public function findByEmail(string $email): ?array
+    {
+        $sql = '
+            SELECT
+                id,
+                username,
+                name,
+                email,
+                role,
+                status,
+                created_at
+            FROM users
+            WHERE email = :email
+            LIMIT 1
+        ';
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute([
+            'email' => $email,
+        ]);
+
+        $user = $statement->fetch();
+
+        return $user === false ? null : $user;
+    }
+    
     public function update(int $id, array $data): bool
     {
         $sql = '
@@ -112,6 +164,24 @@ class UserRepository
             'id' => $id,
         ]);
     }
+
+    public function updatePassword(
+    int $userId,
+    string $passwordHash
+): bool {
+    $sql = '
+        UPDATE users
+        SET password_hash = :password_hash
+        WHERE id = :id
+    ';
+
+    $statement = $this->pdo->prepare($sql);
+
+    return $statement->execute([
+        'password_hash' => $passwordHash,
+        'id' => $userId,
+    ]);
+}
 
     public function delete(int $id): bool
     {

@@ -130,6 +130,24 @@ class StockMovementRepository
         ]);
     }
 
+    public function existsByMaterialId(int $materialId): bool
+{
+    $sql = '
+        SELECT 1
+        FROM stock_movements
+        WHERE material_id = :material_id
+        LIMIT 1
+    ';
+
+    $statement = $this->pdo->prepare($sql);
+
+    $statement->execute([
+        'material_id' => $materialId,
+    ]);
+
+    return $statement->fetchColumn() !== false;
+}
+
     public function delete(int $id): bool
     {
         $sql = '

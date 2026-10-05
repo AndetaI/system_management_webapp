@@ -71,6 +71,30 @@ class TeamRepository
         return $team === false ? null : $team;
     }
 
+    public function findByName(string $name): ?array
+    {
+        $sql = '
+            SELECT
+                id,
+                name,
+                description,
+                created_at
+            FROM teams
+            WHERE name = :name
+            LIMIT 1
+        ';
+
+        $statement = $this->pdo->prepare($sql);
+
+        $statement->execute([
+            'name' => $name,
+        ]);
+
+        $team = $statement->fetch();
+
+        return $team === false ? null : $team;
+    }
+
     public function update(int $id, array $data): bool
     {
         $sql = '

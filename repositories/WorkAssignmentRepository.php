@@ -81,7 +81,23 @@ class WorkAssignmentRepository
             'work_id' => $workId,
         ]);
     }
+public function existsByTeamId(int $teamId): bool
+{
+    $sql = '
+        SELECT 1
+        FROM work_assignments
+        WHERE team_id = :team_id
+        LIMIT 1
+    ';
 
+    $statement = $this->pdo->prepare($sql);
+
+    $statement->execute([
+        'team_id' => $teamId,
+    ]);
+
+    return $statement->fetchColumn() !== false;
+}
     public function deleteByWork(int $workId): bool
     {
         $sql = '
@@ -95,4 +111,22 @@ class WorkAssignmentRepository
             'work_id' => $workId,
         ]);
     }
+
+    public function existsByUserId(int $userId): bool
+{
+    $sql = '
+        SELECT 1
+        FROM work_assignments
+        WHERE user_id = :user_id
+        LIMIT 1
+    ';
+
+    $statement = $this->pdo->prepare($sql);
+
+    $statement->execute([
+        'user_id' => $userId,
+    ]);
+
+    return $statement->fetchColumn() !== false;
+}
 }

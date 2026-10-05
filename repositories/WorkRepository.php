@@ -122,7 +122,23 @@ class WorkRepository
             'id' => $id,
         ]);
     }
+public function existsByVillaId(int $villaId): bool
+{
+    $sql = '
+        SELECT 1
+        FROM works
+        WHERE villa_id = :villa_id
+        LIMIT 1
+    ';
 
+    $statement = $this->pdo->prepare($sql);
+
+    $statement->execute([
+        'villa_id' => $villaId,
+    ]);
+
+    return $statement->fetchColumn() !== false;
+}
     public function delete(int $id): bool
     {
         $sql = '

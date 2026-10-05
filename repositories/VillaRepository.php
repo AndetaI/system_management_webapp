@@ -89,6 +89,33 @@ class VillaRepository
         return $villa === false ? null : $villa;
     }
 
+    public function findByName(string $name): ?array
+    {
+        $sql = '
+            SELECT
+                id,
+                typology_id,
+                name,
+                status,
+                description,
+                planned_date,
+                actual_date
+            FROM villas
+            WHERE name = :name
+            LIMIT 1
+        ';
+
+        $statement = $this->pdo->prepare($sql);
+
+        $statement->execute([
+            'name' => $name,
+        ]);
+
+        $villa = $statement->fetch();
+
+        return $villa === false ? null : $villa;
+    }
+
     public function update(int $id, array $data): bool
     {
         $sql = '

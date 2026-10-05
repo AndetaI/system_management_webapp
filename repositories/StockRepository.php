@@ -69,6 +69,29 @@ class StockRepository
         return $stock === false ? null : $stock;
     }
 
+    public function findByMaterialForUpdate(int $materialId): ?array
+    {
+        $sql = '
+            SELECT
+                id,
+                material_id,
+                quantity
+            FROM stock
+            WHERE material_id = :material_id
+            FOR UPDATE
+        ';
+
+        $statement = $this->pdo->prepare($sql);
+
+        $statement->execute([
+            'material_id' => $materialId,
+        ]);
+
+        $stock = $statement->fetch();
+
+        return $stock === false ? null : $stock;
+    }
+
     public function updateQuantity(
         int $materialId,
         float $quantity

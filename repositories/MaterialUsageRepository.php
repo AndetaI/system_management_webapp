@@ -99,6 +99,40 @@ class MaterialUsageRepository
         ]);
     }
 
+    public function existsByMaterialId(int $materialId): bool
+{
+    $sql = '
+        SELECT 1
+        FROM material_usage
+        WHERE material_id = :material_id
+        LIMIT 1
+    ';
+
+    $statement = $this->pdo->prepare($sql);
+
+    $statement->execute([
+        'material_id' => $materialId,
+    ]);
+
+    return $statement->fetchColumn() !== false;
+}
+public function existsByWorkId(int $workId): bool
+{
+    $sql = '
+        SELECT 1
+        FROM material_usage
+        WHERE work_id = :work_id
+        LIMIT 1
+    ';
+
+    $statement = $this->pdo->prepare($sql);
+
+    $statement->execute([
+        'work_id' => $workId,
+    ]);
+
+    return $statement->fetchColumn() !== false;
+}
     public function delete(int $id): bool
     {
         $sql = '

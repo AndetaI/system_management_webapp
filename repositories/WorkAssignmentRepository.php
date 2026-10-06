@@ -129,4 +129,32 @@ public function existsByTeamId(int $teamId): bool
 
     return $statement->fetchColumn() !== false;
 }
+
+public function isWorkAssignedToUser(
+    int $workId,
+    int $userId
+): bool {
+    $sql = "
+        SELECT 1
+        FROM work_assignments wa
+        LEFT JOIN team_members tm
+            ON tm.team_id = wa.team_id
+        WHERE wa.work_id = :work_id
+          AND (
+              wa.user_id = :direct_user_id
+              OR tm.user_id = :team_user_id
+          )
+        LIMIT 1
+    ";
+
+    $statement = $this->pdo->prepare($sql);
+
+    $statement->execute([
+        'work_id' => $workId,
+        'direct_user_id' => $userId,
+        'team_user_id' => $userId,
+    ]);
+
+    return $statement->fetchColumn() !== false;
+}
 }

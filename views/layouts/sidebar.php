@@ -10,68 +10,86 @@
 
     <nav class="nav flex-column">
 
-        <a
-            class="nav-link <?= ($activePage ?? '') === 'dashboard' ? 'active' : '' ?>"
-            href="/"
-        >
-            Dashboard
-        </a>
+        <?php if (Authorization::can('dashboard.view')): ?>
+            <a
+                class="nav-link <?= ($activePage ?? '') === 'dashboard' ? 'active' : '' ?>"
+                href="/"
+            >
+                Dashboard
+            </a>
+        <?php endif; ?>
 
-        <a
-            class="nav-link <?= ($activePage ?? '') === 'villas' ? 'active' : '' ?>"
-            href="/?page=villas"
-        >
-            Villas
-        </a>
+        <?php if (Authorization::can('villas.view')): ?>
+            <a
+                class="nav-link <?= ($activePage ?? '') === 'villas' ? 'active' : '' ?>"
+                href="/?page=villas"
+            >
+                Villas
+            </a>
+        <?php endif; ?>
 
-        <a
-            class="nav-link <?= ($activePage ?? '') === 'works' ? 'active' : '' ?>"
-            href="/?page=works"
-        >
-            Works
-        </a>
+        <?php if (Authorization::can('works.view')): ?>
+            <a
+                class="nav-link <?= ($activePage ?? '') === 'works' ? 'active' : '' ?>"
+                href="/?page=works"
+            >
+                Works
+            </a>
+        <?php endif; ?>
 
-        <a
-            class="nav-link <?= ($activePage ?? '') === 'materials' ? 'active' : '' ?>"
-            href="/?page=materials"
-        >
-            Materials
-        </a>
+        <?php if (Authorization::can('materials.view')): ?>
+            <a
+                class="nav-link <?= ($activePage ?? '') === 'materials' ? 'active' : '' ?>"
+                href="/?page=materials"
+            >
+                Materials
+            </a>
+        <?php endif; ?>
 
-        <a
-            class="nav-link <?= ($activePage ?? '') === 'stock' ? 'active' : '' ?>"
-            href="/?page=stock"
-        >
-            Warehouse / Stock
-        </a>
+        <?php if (Authorization::can('stock.view')): ?>
+            <a
+                class="nav-link <?= ($activePage ?? '') === 'stock' ? 'active' : '' ?>"
+                href="/?page=stock"
+            >
+                Warehouse / Stock
+            </a>
+        <?php endif; ?>
 
-        <a
-            class="nav-link <?= ($activePage ?? '') === 'suppliers' ? 'active' : '' ?>"
-            href="/?page=suppliers"
-        >
-            Suppliers
-        </a>
+        <?php if (Authorization::can('suppliers.view')): ?>
+            <a
+                class="nav-link <?= ($activePage ?? '') === 'suppliers' ? 'active' : '' ?>"
+                href="/?page=suppliers"
+            >
+                Suppliers
+            </a>
+        <?php endif; ?>
 
-        <a
-            class="nav-link <?= ($activePage ?? '') === 'teams' ? 'active' : '' ?>"
-            href="/?page=teams"
-        >
-            Teams
-        </a>
+        <?php if (Authorization::can('teams.view')): ?>
+            <a
+                class="nav-link <?= ($activePage ?? '') === 'teams' ? 'active' : '' ?>"
+                href="/?page=teams"
+            >
+                Teams
+            </a>
+        <?php endif; ?>
 
-        <a
-            class="nav-link <?= ($activePage ?? '') === 'users' ? 'active' : '' ?>"
-            href="/?page=users"
-        >
-            Users
-        </a>
+        <?php if (Authorization::can('users.view')): ?>
+            <a
+                class="nav-link <?= ($activePage ?? '') === 'users' ? 'active' : '' ?>"
+                href="/?page=users"
+            >
+                Users
+            </a>
+        <?php endif; ?>
 
-        <a
-            class="nav-link <?= ($activePage ?? '') === 'reports' ? 'active' : '' ?>"
-            href="/?page=reports"
-        >
-            Reports
-        </a>
+        <?php if (Authorization::can('reports.view')): ?>
+            <a
+                class="nav-link <?= ($activePage ?? '') === 'reports' ? 'active' : '' ?>"
+                href="/?page=reports"
+            >
+                Reports
+            </a>
+        <?php endif; ?>
 
     </nav>
 
@@ -104,73 +122,90 @@
 
     </div>
 
-
     <div class="offcanvas-body">
 
         <nav class="nav flex-column">
 
-            <a
-                class="nav-link <?= ($activePage ?? '') === 'dashboard' ? 'active' : '' ?>"
-                href="/"
-            >
-                Dashboard
-            </a>
+            <?php if (Authorization::can('dashboard.view')): ?>
+                <a
+                    class="nav-link <?= ($activePage ?? '') === 'dashboard' ? 'active' : '' ?>"
+                    href="/"
+                >
+                    Dashboard
+                </a>
+            <?php endif; ?>
 
-            <a
-                class="nav-link <?= ($activePage ?? '') === 'villas' ? 'active' : '' ?>"
-                href="/?page=villas"
-            >
-                Villas
-            </a>
+            <?php if (Authorization::can('villas.view')): ?>
+                <a
+                    class="nav-link <?= ($activePage ?? '') === 'villas' ? 'active' : '' ?>"
+                    href="/?page=villas"
+                >
+                    Villas
+                </a>
+            <?php endif; ?>
 
-            <a
-                class="nav-link <?= ($activePage ?? '') === 'works' ? 'active' : '' ?>"
-                href="/?page=works"
-            >
-                Works
-            </a>
+            <?php if (Authorization::can('works.view')): ?>
+                <a
+                    class="nav-link <?= ($activePage ?? '') === 'works' ? 'active' : '' ?>"
+                    href="/?page=works"
+                >
+                    Works
+                </a>
+            <?php endif; ?>
 
-            <a
-                class="nav-link <?= ($activePage ?? '') === 'materials' ? 'active' : '' ?>"
-                href="/?page=materials"
-            >
-                Materials
-            </a>
+            <?php if (Authorization::can('materials.view')): ?>
+                <a
+                    class="nav-link <?= ($activePage ?? '') === 'materials' ? 'active' : '' ?>"
+                    href="/?page=materials"
+                >
+                    Materials
+                </a>
+            <?php endif; ?>
 
-            <a
-                class="nav-link <?= ($activePage ?? '') === 'stock' ? 'active' : '' ?>"
-                href="/?page=stock"
-            >
-                Warehouse / Stock
-            </a>
+            <?php if (Authorization::can('stock.view')): ?>
+                <a
+                    class="nav-link <?= ($activePage ?? '') === 'stock' ? 'active' : '' ?>"
+                    href="/?page=stock"
+                >
+                    Warehouse / Stock
+                </a>
+            <?php endif; ?>
 
-            <a
-                class="nav-link <?= ($activePage ?? '') === 'suppliers' ? 'active' : '' ?>"
-                href="/?page=suppliers"
-            >
-                Suppliers
-            </a>
+            <?php if (Authorization::can('suppliers.view')): ?>
+                <a
+                    class="nav-link <?= ($activePage ?? '') === 'suppliers' ? 'active' : '' ?>"
+                    href="/?page=suppliers"
+                >
+                    Suppliers
+                </a>
+            <?php endif; ?>
 
-            <a
-                class="nav-link <?= ($activePage ?? '') === 'teams' ? 'active' : '' ?>"
-                href="/?page=teams"
-            >
-                Teams
-            </a>
+            <?php if (Authorization::can('teams.view')): ?>
+                <a
+                    class="nav-link <?= ($activePage ?? '') === 'teams' ? 'active' : '' ?>"
+                    href="/?page=teams"
+                >
+                    Teams
+                </a>
+            <?php endif; ?>
 
-            <a
-                class="nav-link <?= ($activePage ?? '') === 'users' ? 'active' : '' ?>"
-                href="/?page=users"
-            >
-                Users
-            </a>
+            <?php if (Authorization::can('users.view')): ?>
+                <a
+                    class="nav-link <?= ($activePage ?? '') === 'users' ? 'active' : '' ?>"
+                    href="/?page=users"
+                >
+                    Users
+                </a>
+            <?php endif; ?>
 
-            <a
-                class="nav-link <?= ($activePage ?? '') === 'reports' ? 'active' : '' ?>"
-                href="/?page=reports"
-            >
-                Reports
-            </a>
+            <?php if (Authorization::can('reports.view')): ?>
+                <a
+                    class="nav-link <?= ($activePage ?? '') === 'reports' ? 'active' : '' ?>"
+                    href="/?page=reports"
+                >
+                    Reports
+                </a>
+            <?php endif; ?>
 
         </nav>
 

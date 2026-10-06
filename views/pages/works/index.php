@@ -18,9 +18,14 @@ require __DIR__ . '/../../layouts/sidebar.php';
             </p>
         </div>
 
-        <button type="button" class="btn btn-primary">
-            Add Work
-        </button>
+        <?php if (Authorization::can('works.create')): ?>
+            <a
+                href="/?page=works&action=create"
+                class="btn btn-primary"
+            >
+                Add Work
+            </a>
+        <?php endif; ?>
     </div>
 
 
@@ -127,13 +132,23 @@ require __DIR__ . '/../../layouts/sidebar.php';
                             <td>60%</td>
 
                             <td>
-                                <button class="btn btn-sm btn-outline-primary">
+                                <button 
+                                type="button"
+                                class="btn btn-sm btn-outline-primary"
+                                disabled
+                                >
                                     View
                                 </button>
 
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    Edit
-                                </button>
+                                <?php if (Authorization::can('works.update')): ?>
+                                    <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    disabled
+                                    >
+                                        Edit
+                                    </button>
+                                <?php endif; ?>
                             </td>
                         </tr>
 
@@ -152,13 +167,23 @@ require __DIR__ . '/../../layouts/sidebar.php';
                             <td>0%</td>
 
                             <td>
-                                <button class="btn btn-sm btn-outline-primary">
+                                <button 
+                                type="button"
+                                class="btn btn-sm btn-outline-primary"
+                                disabled
+                                >
                                     View
                                 </button>
 
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    Edit
-                                </button>
+                                <?php if (Authorization::can('works.update')): ?>
+                                    <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    disabled
+                                    >
+                                        Edit
+                                    </button>
+                                <?php endif; ?>
                             </td>
                         </tr>
 

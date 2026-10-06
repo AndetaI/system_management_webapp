@@ -38,7 +38,11 @@
                         </h2>
 
 
-                        <form id="loginForm" method="post">
+                        <form 
+                        id="loginForm" 
+                        method="post"
+                        action="/?page=login"
+                        >
 
                             <div class="mb-3">
                                 <label for="login" class="form-label">
@@ -72,7 +76,18 @@
                                 >
                             </div>
 
-                            <!-- Message area for future validation -->
+                            <?php if (!empty($error)) : ?>
+                                <div
+                                    class="alert alert-danger"
+                                    role="alert"
+                                >
+                                    <?= htmlspecialchars(
+                                        $error,
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+                                </div>
+                            <?php endif; ?>
                             <div
                                 id="loginMessage"
                                 class="alert alert-danger d-none"

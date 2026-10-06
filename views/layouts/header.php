@@ -35,7 +35,7 @@
             Barkea Resort
         </a>
 
-        <a class="text-light text-decoration-none" href="#">
+        <a class="text-light text-decoration-none" href="/?page=logout">
             Logout
         </a>
 

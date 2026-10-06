@@ -182,7 +182,34 @@ class UserRepository
         'id' => $userId,
     ]);
 }
+public function findForAuthentication(string $login): ?array
+{
+    $sql = '
+        SELECT
+            id,
+            username,
+            name,
+            email,
+            password_hash,
+            role,
+            status
+        FROM users
+        WHERE username = :username
+           OR email = :email
+        LIMIT 1
+    ';
 
+    $statement = $this->pdo->prepare($sql);
+
+    $statement->execute([
+        'username' => $login,
+        'email' => $login,
+    ]);
+
+    $user = $statement->fetch();
+
+    return $user === false ? null : $user;
+}
     public function delete(int $id): bool
     {
         $sql = 'DELETE FROM users WHERE id = :id';

@@ -41,6 +41,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
         method="POST"
         action="/?page=works&action=update&id=<?= (int) $work['id'] ?>"
     >
+        <?= Csrf::field() ?>
 
         <div class="mb-3">
             <label

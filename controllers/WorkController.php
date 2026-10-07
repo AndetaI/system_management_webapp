@@ -25,6 +25,7 @@ class WorkController
         $errors = [];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            Csrf::requireValidToken();
 
             $userId = $this->nullablePositiveInt(
                 $_POST['user_id'] ?? null
@@ -99,6 +100,8 @@ class WorkController
             return;
         }
 
+        Csrf::requireValidToken();
+
         $result = $this->workService->update(
             $workId,
             $_POST
@@ -149,6 +152,7 @@ class WorkController
             echo 'Method not allowed.';
             return;
         }
+        Csrf::requireValidToken();
 
         $result = $this->workService->delete(
             $workId

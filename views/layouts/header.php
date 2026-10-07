@@ -35,9 +35,20 @@
             Barkea Resort
         </a>
 
-        <a class="text-light text-decoration-none" href="/?page=logout">
+        <form 
+        method="POST" 
+        action="/?page=logout"
+        class="d-inline"
+        >
+            <?= Csrf::field() ?>
+            <button
+                type="submit"
+                class="btn btn-link text-light text-decoration-none p-0"
+        
+        >
             Logout
-        </a>
+        </button>
+        </form>
 
     </div>
 </nav>

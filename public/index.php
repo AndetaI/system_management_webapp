@@ -45,6 +45,7 @@ require_once __DIR__ . '/../services/WorkService.php';
 require_once __DIR__ . '/../security/SessionManager.php';
 require_once __DIR__ . '/../security/AuthMiddleware.php';
 require_once __DIR__ . '/../security/Authorization.php';
+require_once __DIR__ . '/../security/Csrf.php';
 
 /*
  * Controllers.
@@ -113,6 +114,14 @@ if ($page === 'login') {
 }
 
 if ($page === 'logout') {
+    if($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo 'Method not allowed.';
+        exit;
+    }
+    
+    Csrf::requireValidToken();
+
     $authController->logout();
     exit;
 }
@@ -221,7 +230,7 @@ switch ($page) {
     http_response_code(404);
     echo 'Action not found.';
     break;
-    
+
     case 'materials':
         Authorization::requirePermission(
             'materials.view'

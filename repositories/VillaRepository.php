@@ -47,15 +47,19 @@ class VillaRepository
     {
         $sql = '
             SELECT
-                id,
-                typology_id,
-                name,
-                status,
-                description,
-                planned_date,
-                actual_date
-            FROM villas
-            ORDER BY id
+                v.id,
+                v.typology_id,
+                v.name,
+                v.status,
+                v.description,
+                v.planned_date,
+                v.actual_date,
+                vt.name AS typology_name,
+                vg.name AS group_name
+            FROM villas v
+            INNER JOIN villa_typologies vt ON vt.id = v.typology_id
+            INNER JOIN villa_groups vg ON vg.id = vt.group_id
+            ORDER BY v.name
         ';
 
         $statement = $this->pdo->query($sql);
@@ -67,15 +71,21 @@ class VillaRepository
     {
         $sql = '
             SELECT
-                id,
-                typology_id,
-                name,
-                status,
-                description,
-                planned_date,
-                actual_date
-            FROM villas
-            WHERE id = :id
+                v.id,
+                v.typology_id,
+                v.name,
+                v.status,
+                v.description,
+                v.planned_date,
+                v.actual_date,
+                vt.name AS typology_name,
+                vg.id AS group_id,
+                vg.name AS group_name
+            FROM villas v
+            INNER JOIN villa_typologies vt ON vt.id = v.typology_id
+            INNER JOIN villa_groups vg ON vg.id = vt.group_id
+            WHERE v.id = :id
+            LIMIT 1
         ';
 
         $statement = $this->pdo->prepare($sql);

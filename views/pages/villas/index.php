@@ -1,209 +1,211 @@
 <?php
 
-$pageTitle = 'Villas | Barkea Resort';
+declare(strict_types=1);
+
+$pageTitle = 'Villas';
 $activePage = 'villas';
 
 require __DIR__ . '/../../layouts/header.php';
 require __DIR__ . '/../../layouts/sidebar.php';
 
+$search = trim((string) ($_GET['search'] ?? ''));
 ?>
 
-<main class="main-content flex-grow-1 p-4">
+<main class="main-content">
+    <div class="container-fluid py-4">
 
-    <div class="d-flex flex-row justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">Villas</h2>
+                <p class="text-muted mb-0">
+                    Manage and monitor Barkea Resort villas.
+                </p>
+            </div>
 
-        <div>
-            <h1>Villas</h1>
-            <p class="text-muted mb-0">
-                Manage Barkea Resort villas.
-            </p>
+            <?php if (Authorization::can('villas.create')): ?>
+                <a
+                    href="/?page=villas&action=create"
+                    class="btn btn-primary"
+                >
+                    Add Villa
+                </a>
+            <?php endif; ?>
         </div>
 
-        <button type="button" class="btn btn-primary">
-            Add Villa
-        </button>
+        <div class="card shadow-sm">
+            <div class="card-body">
 
-    </div>
+                <form
+                    method="GET"
+                    action="/"
+                    class="row g-2 mb-4"
+                >
+                    <input
+                        type="hidden"
+                        name="page"
+                        value="villas"
+                    >
 
-
-    <!-- Search and filters -->
-
-    <div class="card mb-4">
-        <div class="card-body">
-
-            <form>
-
-                <div class="row g-3">
-
-                    <div class="col-md-4">
-                        <label for="villaSearch" class="form-label">
-                            Search
-                        </label>
-
+                    <div class="col-md-10">
                         <input
                             type="search"
-                            id="villaSearch"
+                            name="search"
                             class="form-control"
-                            placeholder="Search villa..."
+                            placeholder="Search villas..."
+                            value="<?= htmlspecialchars(
+                                $search,
+                                ENT_QUOTES,
+                                'UTF-8'
+                            ) ?>"
                         >
                     </div>
 
-
-                    <div class="col-md-3">
-
-                        <label for="villaGroup" class="form-label">
-                            Group
-                        </label>
-
-                        <select id="villaGroup" class="form-select">
-                            <option value="">All groups</option>
-                            <option value="A">Group A</option>
-                            <option value="B">Group B</option>
-                            <option value="C">Group C</option>
-                            <option value="Vila">Vila</option>
-                        </select>
-
-                    </div>
-
-
-                    <div class="col-md-3">
-
-                        <label for="villaStatus" class="form-label">
-                            Status
-                        </label>
-
-                        <select id="villaStatus" class="form-select">
-                            <option value="">All statuses</option>
-                            <option value="planned">Planned</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                        </select>
-
-                    </div>
-
-
-                    <div class="col-md-2 d-flex align-items-end">
-
-                        <button type="submit" class="btn btn-primary w-100">
-                            Go
+                    <div class="col-md-2 d-grid">
+                        <button
+                            type="submit"
+                            class="btn btn-outline-primary"
+                        >
+                            Search
                         </button>
-
                     </div>
+                </form>
 
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>Villa</th>
+                                <th>Group</th>
+                                <th>Typology</th>
+                                <th>Status</th>
+                                <th>Planned Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <?php
+                        $visibleVillas = array_filter(
+                            $villas,
+                            static function (array $villa) use ($search): bool {
+                                if ($search === '') {
+                                    return true;
+                                }
+
+                                $haystack =
+                                    $villa['name'] . ' '
+                                    . $villa['group_name'] . ' '
+                                    . $villa['typology_name'] . ' '
+                                    . $villa['status'];
+
+                                return stripos(
+                                    $haystack,
+                                    $search
+                                ) !== false;
+                            }
+                        );
+                        ?>
+
+                        <?php if ($visibleVillas === []): ?>
+
+                            <tr>
+                                <td
+                                    colspan="6"
+                                    class="text-center text-muted py-4"
+                                >
+                                    No villas found.
+                                </td>
+                            </tr>
+
+                        <?php else: ?>
+
+                            <?php foreach ($visibleVillas as $villa): ?>
+
+                                <tr>
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            $villa['name'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            $villa['group_name'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            $villa['typology_name'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            ucfirst(
+                                                str_replace(
+                                                    '_',
+                                                    ' ',
+                                                    $villa['status']
+                                                )
+                                            ),
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            $villa['planned_date'] ?? '-',
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <a
+                                            href="/?page=villas&action=show&id=<?= (int) $villa['id'] ?>"
+                                            class="btn btn-sm btn-outline-primary"
+                                        >
+                                            View
+                                        </a>
+
+                                        <?php if (
+                                            Authorization::can('villas.update')
+                                        ): ?>
+
+                                            <a
+                                                href="/?page=villas&action=edit&id=<?= (int) $villa['id'] ?>"
+                                                class="btn btn-sm btn-outline-secondary"
+                                            >
+                                                Edit
+                                            </a>
+
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+
+                            <?php endforeach; ?>
+
+                        <?php endif; ?>
+
+                        </tbody>
+
+                    </table>
                 </div>
 
-            </form>
-
-        </div>
-    </div>
-
-
-    <!-- Villas table -->
-
-    <div class="card">
-
-        <div class="card-header">
-            <h2 class="h5 mb-0">Villa List</h2>
-        </div>
-
-        <div class="card-body">
-
-            <div class="table-responsive">
-
-                <table class="table table-hover align-middle">
-
-                    <thead>
-                        <tr>
-                            <th>Villa</th>
-                            <th>Group</th>
-                            <th>Typology</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        <!-- Temporary frontend data -->
-
-                        <tr>
-                            <td>A1</td>
-                            <td>A</td>
-                            <td>Type 1</td>
-
-                            <td>
-                                <span class="badge text-bg-warning">
-                                    In Progress
-                                </span>
-                            </td>
-
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary">
-                                    View
-                                </button>
-
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    Edit
-                                </button>
-                            </td>
-                        </tr>
-
-
-                        <tr>
-                            <td>A2</td>
-                            <td>A</td>
-                            <td>Type 1</td>
-
-                            <td>
-                                <span class="badge text-bg-secondary">
-                                    Planned
-                                </span>
-                            </td>
-
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary">
-                                    View
-                                </button>
-
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    Edit
-                                </button>
-                            </td>
-                        </tr>
-
-
-                        <tr>
-                            <td>A7</td>
-                            <td>A</td>
-                            <td>Type 2</td>
-
-                            <td>
-                                <span class="badge text-bg-success">
-                                    Completed
-                                </span>
-                            </td>
-
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary">
-                                    View
-                                </button>
-
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    Edit
-                                </button>
-                            </td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
             </div>
-
         </div>
 
     </div>
-
 </main>
 
 <?php require __DIR__ . '/../../layouts/footer.php'; ?>

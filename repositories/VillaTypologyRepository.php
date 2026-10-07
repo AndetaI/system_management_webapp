@@ -44,14 +44,16 @@ class VillaTypologyRepository
     {
         $sql = '
             SELECT
-                id,
-                group_id,
-                name,
-                description,
-                floors,
-                area
-            FROM villa_typologies
-            ORDER BY id
+                vt.id,
+                vt.group_id,
+                vt.name,
+                vt.description,
+                vt.floors,
+                vt.area,
+                vg.name AS group_name
+            FROM villa_typologies vt
+            INNER JOIN villa_groups vg ON vg.id = vt.group_id
+            ORDER BY vg.name, vt.name
         ';
 
         $statement = $this->pdo->query($sql);

@@ -93,7 +93,7 @@ class VillaService
         if ($this->villaRepository->findByName($name) !== null) {
             $validator->addError(
                 'name',
-                'The selected villa name is already exists.'
+                'A villa with this name already exists.'
             );
 
             return [
@@ -218,7 +218,7 @@ class VillaService
         if ($villaWithSameName !== null && (int)$villaWithSameName['id'] !== $villaId) {
             $validator->addError(
                 'name',
-                'The selected villa name is already exists.'
+                'A villa with this name already exists.'
             );
         }
 

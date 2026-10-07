@@ -33,11 +33,13 @@ require_once __DIR__ . '/../repositories/VillaRepository.php';
 require_once __DIR__ . '/../repositories/WorkAssignmentRepository.php';
 require_once __DIR__ . '/../repositories/TeamRepository.php';
 require_once __DIR__ . '/../repositories/MaterialUsageRepository.php';
+require_once __DIR__ . '/../repositories/VillaTypologyRepository.php';
 /*
  * Services.
  */
 require_once __DIR__ . '/../services/AuthService.php';
 require_once __DIR__ . '/../services/WorkService.php';
+require_once __DIR__ . '/../services/VillaService.php';
 
 /*
  * Security.
@@ -52,7 +54,7 @@ require_once __DIR__ . '/../security/Csrf.php';
  */
 require_once __DIR__ . '/../controllers/AuthController.php';
 require_once __DIR__ . '/../controllers/WorkController.php';
-
+require_once __DIR__ . '/../controllers/VillaController.php';
 /*
  * Utilities.
  */
@@ -77,7 +79,7 @@ $authController = new AuthController($authService);
 
 $workRepository = new WorkRepository($pdo);
 $villaRepository = new VillaRepository($pdo);
-
+$villaTypologyRepository = new VillaTypologyRepository($pdo);
 $workAssignmentRepository = new WorkAssignmentRepository($pdo);
 
 $teamRepository = new TeamRepository($pdo);
@@ -98,6 +100,17 @@ $workController = new WorkController(
     $workService,
     $workRepository,
     $workAssignmentRepository
+);
+
+$villaService = new VillaService(
+    $villaRepository,
+    $villaTypologyRepository,
+    $workRepository
+);
+ $villaController = new VillaController(
+    $villaService,
+    $villaRepository,
+    $villaTypologyRepository
 );
 
 /*
@@ -152,25 +165,100 @@ switch ($page) {
         break;
 
     case 'villas':
-        Authorization::requirePermission(
-            'villas.view'
-        );
+        $action = $_GET['action'] ?? 'index';
+         switch ($action) {
+            case 'index':
+                $villaController->index();
+                break;
 
-        require __DIR__
-            . '/../views/pages/villas/index.php';
+            case 'show':
+                $id = filter_input(
+                    INPUT_GET,
+                    'id',
+                    FILTER_VALIDATE_INT
+                );
+
+                if ($id === false || $id === null || $id <= 0) {
+                    http_response_code(400);
+                    echo 'Invalid villa ID.';
+                    break;
+                }
+
+                $villaController->show($id);
+                break;
+
+            case 'create':
+                $villaController->create();
+                break;
+
+            case 'store':
+                $villaController->store();
+                break;
+
+            case 'edit':
+                $id = filter_input(
+                    INPUT_GET,
+                    'id',
+                    FILTER_VALIDATE_INT
+                );
+
+                if ($id === false || $id === null || $id <= 0) {
+                    http_response_code(400);
+                    echo 'Invalid villa ID.';
+                    break;
+                }
+
+                $villaController->edit($id);
+                break;
+            
+            case 'update':
+                $id = filter_input(
+                    INPUT_GET,
+                    'id',
+                    FILTER_VALIDATE_INT
+                );
+
+                if ($id === false || $id === null || $id <= 0) {
+                    http_response_code(400);
+                    echo 'Invalid villa ID.';
+                    break;
+                }
+                $villaController->update($id);
+                break;
+            
+            case 'delete':
+                $id = filter_input(
+                    INPUT_GET,
+                    'id',
+                    FILTER_VALIDATE_INT
+                );
+
+                if ($id === false || $id === null || $id <= 0) {
+                    http_response_code(400);
+                    echo 'Invalid villa ID.';
+                    break;
+                }
+
+                $villaController->delete($id);
+                break;
+
+
+            default:
+                http_response_code(404);
+                echo 'Action not found.';
+         }
 
         break;
 
     case 'works':
+        $action = $_GET['action'] ?? 'index';
+        
+        if ($action === 'index') {
+            Authorization::requirePermission(
+                'works.view'
+            );
 
-    $action = $_GET['action'] ?? 'index';
-
-    if ($action === 'index') {
-        Authorization::requirePermission(
-            'works.view'
-        );
-
-        require __DIR__
+            require __DIR__
             . '/../views/pages/works/index.php';
 
         break;

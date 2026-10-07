@@ -113,6 +113,14 @@ if ($page === 'login') {
     exit;
 }
 
+/*
+ * Everything below this point requires authentication.
+ */
+AuthMiddleware::requireAuthentication();
+
+/*
+ * Logout is authenticated + POST + CSRF protected.
+ */
 if ($page === 'logout') {
     if($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
@@ -126,10 +134,7 @@ if ($page === 'logout') {
     exit;
 }
 
-/*
- * Everything below this point requires authentication.
- */
-AuthMiddleware::requireAuthentication();
+
 
 /*
  * Protected routes with server-side RBAC.

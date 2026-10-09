@@ -47,15 +47,17 @@ class MaterialRepository
     {
         $sql = '
             SELECT
-                id,
-                supplier_id,
-                name,
-                category,
-                unit,
-                price,
-                description
-            FROM materials
-            ORDER BY id
+                m.id,
+                m.supplier_id,
+                m.name,
+                m.category,
+                m.unit,
+                m.price,
+                m.description,
+                COALESCE(s.quantity, 0) AS quantity
+            FROM materials m
+            LEFT JOIN stock s ON s.material_id = m.id
+            ORDER BY m.id DESC
         ';
 
         $statement = $this->pdo->query($sql);

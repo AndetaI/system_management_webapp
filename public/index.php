@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+ini_set('pcre.jit', '0');
 
 error_reporting(E_ALL);
 
@@ -35,12 +36,17 @@ require_once __DIR__ . '/../repositories/TeamRepository.php';
 require_once __DIR__ . '/../repositories/MaterialUsageRepository.php';
 require_once __DIR__ . '/../repositories/VillaTypologyRepository.php';
 require_once __DIR__ . '/../repositories/WorkProgressRepository.php';
+require_once __DIR__ . '/../repositories/MaterialRepository.php';
+require_once __DIR__ . '/../repositories/SupplierRepository.php';
+require_once __DIR__ . '/../repositories/StockRepository.php';
+require_once __DIR__ . '/../repositories/StockMovementRepository.php';
 /*
  * Services.
  */
 require_once __DIR__ . '/../services/AuthService.php';
 require_once __DIR__ . '/../services/WorkService.php';
 require_once __DIR__ . '/../services/VillaService.php';
+require_once __DIR__ . '/../services/MaterialService.php';
 
 /*
  * Security.
@@ -56,6 +62,7 @@ require_once __DIR__ . '/../security/Csrf.php';
 require_once __DIR__ . '/../controllers/AuthController.php';
 require_once __DIR__ . '/../controllers/WorkController.php';
 require_once __DIR__ . '/../controllers/VillaController.php';
+require_once __DIR__ . '/../controllers/MaterialController.php';
 /*
  * Utilities.
  */
@@ -87,6 +94,12 @@ $teamRepository = new TeamRepository($pdo);
 
 $materialUsageRepository = new MaterialUsageRepository($pdo);
 $workProgressRepository = new WorkProgressRepository($pdo);
+
+$materialRepository = new MaterialRepository($pdo);
+$supplierRepository = new SupplierRepository($pdo);
+$stockRepository = new StockRepository($pdo);
+$stockMovementRepository = new StockMovementRepository($pdo);
+
 $workService = new WorkService(
     $pdo,
     $workRepository,
@@ -116,6 +129,21 @@ $villaService = new VillaService(
     $villaService,
     $villaRepository,
     $villaTypologyRepository
+);
+
+$materialService = new MaterialService(
+    $materialRepository,
+    $supplierRepository,
+    $stockRepository,
+    $stockMovementRepository,
+    $materialUsageRepository,
+    $pdo
+);
+
+$materialController = new MaterialController(
+    $materialRepository,
+    $materialService,
+    $supplierRepository
 );
 
 /*
@@ -346,14 +374,45 @@ switch ($page) {
     break;
 
     case 'materials':
-        Authorization::requirePermission(
-            'materials.view'
-        );
+    Authorization::requirePermission('materials.view');
 
-        require __DIR__
-            . '/../views/pages/materials/index.php';
+    $action = $_GET['action'] ?? 'index';
 
-        break;
+    switch ($action) {
+        case 'index':
+            $materialController->index();
+            break;
+
+        case 'show':
+            $materialController->show();
+            break;
+
+        case 'create':
+            $materialController->create();
+            break;
+
+        case 'store':
+            $materialController->store();
+            break;
+
+        case 'edit':
+            $materialController->edit();
+            break;
+
+        case 'update':
+            $materialController->update();
+            break;
+
+        case 'delete':
+            $materialController->delete();
+            break;
+
+        default:
+            http_response_code(404);
+            echo 'Material action not found.';
+    }
+
+    break;
 
     case 'stock':
         Authorization::requirePermission(

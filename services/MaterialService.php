@@ -9,8 +9,25 @@ class MaterialService
         private SupplierRepository $supplierRepository,
         private StockRepository $stockRepository,
         private StockMovementRepository $stockMovementRepository,
-        private MaterialUsageRepository $materialUsageRepository
-    ) {
+        private MaterialUsageRepository $materialUsageRepository,
+        private PDO $pdo
+        ) {
+    }
+
+    private function validatePrice(Validator $validator, mixed $price): void
+    {
+        $value = trim((string) ($price ?? ''));
+
+        if (
+            !preg_match('/^\d+(?:\.\d{1,2})?$/D', $value)
+            || strlen(explode('.', $value)[0]) > 8
+            || (float) $value > 99999999.99
+        ) {
+            $validator->addError(
+                'price',
+                'Price must be between 0 and 99999999.99, with up to 2 decimal places.'
+            );
+        }
     }
 
     public function create(array $data): array
@@ -56,11 +73,6 @@ class MaterialService
                 $data['price'] ?? null,
                 'Material price is required.'
             )
-            ->nonNegative(
-                'price',
-                $data['price'] ?? null,
-                'Material price cannot be negative.'
-            )
             ->required(
                 'supplier_id',
                 $data['supplier_id'] ?? null,
@@ -71,6 +83,25 @@ class MaterialService
                 $data['supplier_id'] ?? null,
                 'Invalid supplier.'
             );
+        $this->validatePrice(
+            $validator,
+            $data['price'] ?? null
+        );
+
+        $initialQuantity = trim(
+            (string) ($data['initial_quantity'] ?? '0')
+        );
+
+        if (
+            !preg_match('/^\d+(?:\.\d{1,2})?$/D', $initialQuantity)
+            || strlen(explode('.', $initialQuantity)[0]) > 8
+            || (float) $initialQuantity > 99999999.99
+        ) {
+            $validator->addError(
+                'initial_quantity',
+                'Initial quantity must be between 0 and 99999999.99, with up to 2 decimal places.'
+            );
+        }
 
         if ($validator->fails()) {
             return [
@@ -99,21 +130,42 @@ class MaterialService
             ];
         }
 
-        $materialId = $this->materialRepository->create([
-            'supplier_id' => $supplierId,
-            'name' => trim((string) $data['name']),
-            'category' => trim((string) $data['category']),
-            'unit' => trim((string) $data['unit']),
-            'price' => (float) $data['price'],
-            'description' => isset($data['description'])
-                ? trim((string) $data['description'])
-                : null,
-        ]);
+        $pdo = $this->pdo;
 
-        return [
-            'success' => true,
-            'id' => $materialId,
-        ];
+        $pdo->beginTransaction();
+
+        try {
+            // 1. Create the material.
+            $materialId = $this->materialRepository->create([
+                'supplier_id' => $supplierId,
+                'name' => trim((string) $data['name']),
+                'category' => trim((string) $data['category']),
+                'unit' => trim((string) $data['unit']),
+                'price' => trim((string) $data['price']),
+                'description' => isset($data['description'])
+                    ? trim((string) $data['description'])
+                    : null,
+            ]);
+
+            // 2. Initialize stock at initial quantity
+            $this->stockRepository->create($materialId, 
+            (float) $initialQuantity);
+
+            // 3. Save both operations together.
+            $pdo->commit();
+
+            return [
+                'success' => true,
+                'id' => $materialId,
+            ];
+
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            throw $exception;
+        }
     }
 
     public function update(int $materialId, array $data): array
@@ -166,11 +218,6 @@ class MaterialService
                 $data['price'] ?? null,
                 'Material price is required.'
             )
-            ->nonNegative(
-                'price',
-                $data['price'] ?? null,
-                'Material price cannot be negative.'
-            )
             ->required(
                 'supplier_id',
                 $data['supplier_id'] ?? null,
@@ -182,6 +229,11 @@ class MaterialService
                 'Invalid supplier.'
             );
 
+        $this->validatePrice(
+            $validator,
+            $data['price'] ?? null
+        );
+
         if ($validator->fails()) {
             return [
                 'success' => false,
@@ -192,7 +244,7 @@ class MaterialService
         $material = $this->materialRepository->findById($materialId);
 
         if ($material === null) {
-            validator->addError(
+            $validator->addError(
                 'material_id',
                 'The selected material does not exist.'
             );
@@ -219,7 +271,7 @@ class MaterialService
             'name' => trim((string) $data['name']),
             'category' => trim((string) $data['category']),
             'unit' => trim((string) $data['unit']),
-            'price' => (float) $data['price'],
+            'price' => trim((string) $data['price']),
             'description' => isset($data['description'])
                 ? trim((string) $data['description'])
                 : null,
@@ -268,20 +320,6 @@ public function delete(int $materialId): array
         ];
     }
 
-    /*
-     * Do not delete a material that has
-     * a stock record.
-     */
-    if (
-        $this->stockRepository->findByMaterial(
-            $materialId
-        ) !== null
-    ) {
-        $validator->addError(
-            'material_id',
-            'Cannot delete this material because it has a stock record.'
-        );
-    }
 
     /*
      * Preserve stock movement history.
@@ -316,12 +354,27 @@ public function delete(int $materialId): array
         ];
     }
 
-    $this->materialRepository->delete(
-        $materialId
-    );
+    $this->pdo->beginTransaction();
 
-    return [
-        'success' => true,
-    ];
+    try {
+        // Delete the material's stock record first.
+        $this->stockRepository->deleteByMaterial($materialId);
+
+        // Then delete the material itself.
+        $this->materialRepository->delete($materialId);
+
+        $this->pdo->commit();
+
+        return [
+            'success' => true,
+        ];
+
+    } catch (Throwable $exception) {
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
+
+        throw $exception;
+    }
 }
 }

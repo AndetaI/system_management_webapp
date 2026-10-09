@@ -282,3 +282,38 @@ CREATE TABLE stock_movements (
     CONSTRAINT chk_stock_movements_quantity
         CHECK (quantity > 0)
 ) ENGINE=InnoDB;
+
+CREATE TABLE work_progress_updates (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    work_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+
+    old_status ENUM(
+        'planned',
+        'in_progress',
+        'completed'
+    ) NOT NULL,
+
+    new_status ENUM(
+        'planned',
+        'in_progress',
+        'completed'
+    ) NOT NULL,
+
+    note TEXT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_progress_work
+        FOREIGN KEY (work_id)
+        REFERENCES works(id)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_progress_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE RESTRICT,
+
+    INDEX idx_progress_work_created (work_id, created_at)
+) ENGINE=InnoDB;

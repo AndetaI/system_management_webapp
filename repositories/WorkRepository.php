@@ -50,16 +50,25 @@ class WorkRepository
     {
         $sql = '
             SELECT
-                id,
-                villa_id,
-                title,
-                category,
-                status,
-                description,
-                planned_date,
-                actual_date
-            FROM works
-            ORDER BY id
+                w.id,
+                w.villa_id,
+                v.name AS villa_name,
+                w.title,
+                w.category,
+                w.status,
+                w.description,
+                w.planned_date,
+                w.actual_date,
+                wa.user_id,
+                wa.team_id,
+                u.name AS assigned_user_name,
+                t.name AS assigned_team_name
+            FROM works w
+            INNER JOIN villas v ON v.id = w.villa_id
+            LEFT JOIN work_assignments wa ON wa.work_id = w.id
+            LEFT JOIN users u ON u.id = wa.user_id
+            LEFT JOIN teams t ON t.id = wa.team_id  
+            ORDER BY w.id DESC
         ';
 
         $statement = $this->pdo->query($sql);
@@ -71,16 +80,26 @@ class WorkRepository
     {
         $sql = '
             SELECT
-                id,
-                villa_id,
-                title,
-                category,
-                status,
-                description,
-                planned_date,
-                actual_date
-            FROM works
-            WHERE id = :id
+                w.id,
+                w.villa_id,
+                v.name AS villa_name,
+                w.title,
+                w.category,
+                w.status,
+                w.description,
+                w.planned_date,
+                w.actual_date,
+                wa.user_id,
+                wa.team_id,
+                u.name AS assigned_user_name,
+                t.name AS assigned_team_name
+            FROM works AS w
+            INNER JOIN villas AS v ON v.id = w.villa_id
+            LEFT JOIN work_assignments AS wa ON wa.work_id = w.id
+            LEFT JOIN users AS u ON u.id = wa.user_id
+            LEFT JOIN teams AS t ON t.id = wa.team_id
+            WHERE w.id = :id
+            LIMIT 1
         ';
 
         $statement = $this->pdo->prepare($sql);

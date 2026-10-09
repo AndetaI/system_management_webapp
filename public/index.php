@@ -34,6 +34,7 @@ require_once __DIR__ . '/../repositories/WorkAssignmentRepository.php';
 require_once __DIR__ . '/../repositories/TeamRepository.php';
 require_once __DIR__ . '/../repositories/MaterialUsageRepository.php';
 require_once __DIR__ . '/../repositories/VillaTypologyRepository.php';
+require_once __DIR__ . '/../repositories/WorkProgressRepository.php';
 /*
  * Services.
  */
@@ -85,7 +86,7 @@ $workAssignmentRepository = new WorkAssignmentRepository($pdo);
 $teamRepository = new TeamRepository($pdo);
 
 $materialUsageRepository = new MaterialUsageRepository($pdo);
-
+$workProgressRepository = new WorkProgressRepository($pdo);
 $workService = new WorkService(
     $pdo,
     $workRepository,
@@ -93,13 +94,17 @@ $workService = new WorkService(
     $workAssignmentRepository,
     $userRepository,
     $teamRepository,
-    $materialUsageRepository
+    $materialUsageRepository,
+    $workProgressRepository
 );
 
 $workController = new WorkController(
     $workService,
     $workRepository,
-    $workAssignmentRepository
+    $workAssignmentRepository,
+    $villaRepository,
+    $userRepository,
+    $teamRepository
 );
 
 $villaService = new VillaService(
@@ -254,70 +259,86 @@ switch ($page) {
         $action = $_GET['action'] ?? 'index';
         
         if ($action === 'index') {
-            Authorization::requirePermission(
-                'works.view'
+            $workController->index();
+            break;
+        }
+
+        if ($action === 'create') {
+            $workController->create();
+            break;
+        }
+
+        if ($action === 'edit') {
+            $workId = filter_input(
+                INPUT_GET,
+                'id',
+                FILTER_VALIDATE_INT
             );
 
-            require __DIR__
-            . '/../views/pages/works/index.php';
+            if ($workId === false || $workId === null) {
+                http_response_code(400);
+                echo 'Invalid work ID.';
+                break;
+            }
 
-        break;
-    }
-
-    if ($action === 'create') {
-        $workController->create();
-        break;
-    }
-
-    if ($action === 'edit') {
-        $workId = filter_input(
-            INPUT_GET,
-            'id',
-            FILTER_VALIDATE_INT
-        );
-
-        if ($workId === false || $workId === null) {
-            http_response_code(400);
-            echo 'Invalid work ID.';
+            $workController->edit($workId);
             break;
         }
 
-        $workController->edit($workId);
-        break;
-    }
+        if ($action === 'show') {
+            $id = filter_input(
+                INPUT_GET,
+                'id',
+                FILTER_VALIDATE_INT
+            );
 
-    if ($action === 'update') {
-        $workId = filter_input(
-            INPUT_GET,
-            'id',
-            FILTER_VALIDATE_INT
-        );
+            if ($id === false || $id === null || $id <= 0) {
+                http_response_code(400);
+                echo 'Invalid work ID.';
+                break;
+            }
 
-        if ($workId === false || $workId === null) {
-            http_response_code(400);
-            echo 'Invalid work ID.';
+            $workController->show($id);
             break;
         }
 
-        $workController->update($workId);
-        break;
-    }
+        if ($action === 'update') {
+            $workId = filter_input(
+                INPUT_GET,
+                'id',
+                FILTER_VALIDATE_INT
+            );
 
-    if ($action === 'delete') {
-        $workId = filter_input(
-            INPUT_GET,
-            'id',
-            FILTER_VALIDATE_INT
-        );
+            if ($workId === false || $workId === null) {
+                http_response_code(400);
+                echo 'Invalid work ID.';
+                break;
+            }
 
-        if ($workId === false || $workId === null) {
-            http_response_code(400);
-            echo 'Invalid work ID.';
+            $workController->update($workId);
             break;
         }
+        if ($action === 'updateProgress'){
+            $workController->updateProgress();
+            break;
 
-        $workController->delete($workId);
-        break;
+        }
+
+        if ($action === 'delete') {
+            $workId = filter_input(
+                INPUT_GET,
+                'id',
+                FILTER_VALIDATE_INT
+            );
+
+            if ($workId === false || $workId === null) {
+                http_response_code(400);
+                echo 'Invalid work ID.';
+                break;
+            }
+
+            $workController->delete($workId);
+            break;
     }
 
     http_response_code(404);
@@ -383,6 +404,7 @@ switch ($page) {
             . '/../views/pages/reports/index.php';
 
         break;
+
 
     default:
         http_response_code(404);

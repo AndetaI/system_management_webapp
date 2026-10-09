@@ -1,197 +1,193 @@
 <?php
-
-$pageTitle = 'Works | Barkea Resort';
-$activePage = 'works';
+declare(strict_types=1);
 
 require __DIR__ . '/../../layouts/header.php';
 require __DIR__ . '/../../layouts/sidebar.php';
 
+$search = trim((string) ($_GET['search'] ?? ''));
+$visibleWorks = array_filter(
+    $works,
+    static function (array $work) use ($search): bool {
+        if ($search === '') {
+            return true;
+        }
+
+        $responsible = $work['assigned_user_name']
+            ?? $work['assigned_team_name']
+            ?? '';
+
+        $searchable = implode(' ', [
+            $work['title'],
+            $work['category'],
+            $work['villa_name'],
+            $work['status'],
+            $responsible
+        ]);
+
+        return stripos($searchable, $search) !== false;
+    }
+);
 ?>
 
-<main class="main-content flex-grow-1 p-4">
+<main class="container-fluid p-4">
 
-    <div class="d-flex flex-row justify-content-between align-items-center mb-4">
-        <div>
-            <h1>Works</h1>
-            <p class="text-muted mb-0">
-                Manage construction works and activities.
-            </p>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Work Management</h2>
 
         <?php if (Authorization::can('works.create')): ?>
-            <a
-                href="/?page=works&action=create"
-                class="btn btn-primary"
-            >
+            <a href="/?page=works&action=create"
+               class="btn btn-primary">
                 Add Work
             </a>
         <?php endif; ?>
     </div>
-
-
-    <!-- Search and filters -->
-
-    <div class="card mb-4">
-        <div class="card-body">
-
-            <form>
-                <div class="row g-3">
-
-                    <div class="col-md-4">
-                        <label for="workSearch" class="form-label">
-                            Search
-                        </label>
-
-                        <input
-                            type="search"
-                            class="form-control"
-                            id="workSearch"
-                            placeholder="Search work..."
-                        >
-                    </div>
-
-                    <div class="col-md-3">
-                        <label for="workVilla" class="form-label">
-                            Villa
-                        </label>
-
-                        <select id="workVilla" class="form-select">
-                            <option value="">All villas</option>
-                            <option>A1</option>
-                            <option>A2</option>
-                            <option>A3</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label for="workStatus" class="form-label">
-                            Status
-                        </label>
-
-                        <select id="workStatus" class="form-select">
-                            <option value="">All statuses</option>
-                            <option>Planned</option>
-                            <option>In Progress</option>
-                            <option>Completed</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
-                            Filter
-                        </button>
-                    </div>
-
-                </div>
-            </form>
-
+    <!-- Success message -->
+    <?php if (isset($_SESSION['flash_success'])): ?>
+        <div class="alert alert-success" role="alert">
+            <?= htmlspecialchars(
+                (string) $_SESSION['flash_success'],
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>
         </div>
-    </div>
+        <?php unset($_SESSION['flash_success']); ?>
+    <?php endif; ?>
 
-
-    <!-- Works table -->
-
-    <div class="card">
-
-        <div class="card-header">
-            <h2 class="h5 mb-0">Work List</h2>
+    <!-- Error message -->
+    <?php if (isset($_SESSION['flash_error'])): ?>
+        <div class="alert alert-danger" role="alert">
+            <?= htmlspecialchars(
+                (string) $_SESSION['flash_error'],
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>
         </div>
+        <?php unset($_SESSION['flash_error']); ?>
+    <?php endif; ?>
 
-        <div class="card-body">
+    <form method="GET" action="/" class="mb-4">
+        <input type="hidden" name="page" value="works">
 
-            <div class="table-responsive">
+        <div class="input-group">
+            <input
+                type="text"
+                name="search"
+                class="form-control"
+                placeholder="Search works..."
+                value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>"
+            >
 
-                <table class="table table-hover align-middle">
+            <button type="submit" class="btn btn-primary">
+                Search
+            </button>
+        </div>
+    </form>
 
-                    <thead>
+    <div class="card shadow-sm">
+        <div class="card-body table-responsive">
+
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Villa</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Responsible</th>
+                        <th>Planned Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <?php if ($visibleWorks === []): ?>
                         <tr>
-                            <th>Work</th>
-                            <th>Villa</th>
-                            <th>Category</th>
-                            <th>Assigned To</th>
-                            <th>Status</th>
-                            <th>Progress</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        <tr>
-                            <td>Electrical Installation</td>
-                            <td>A1</td>
-                            <td>Electrical</td>
-                            <td>Team Electrical</td>
-
-                            <td>
-                                <span class="badge text-bg-warning">
-                                    In Progress
-                                </span>
-                            </td>
-
-                            <td>60%</td>
-
-                            <td>
-                                <button 
-                                type="button"
-                                class="btn btn-sm btn-outline-primary"
-                                disabled
-                                >
-                                    View
-                                </button>
-
-                                <?php if (Authorization::can('works.update')): ?>
-                                    <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-secondary"
-                                    disabled
-                                    >
-                                        Edit
-                                    </button>
-                                <?php endif; ?>
+                            <td colspan="8" class="text-center">
+                                No works found.
                             </td>
                         </tr>
+                    <?php else: ?>
 
-                        <tr>
-                            <td>Interior Painting</td>
-                            <td>A2</td>
-                            <td>Finishing</td>
-                            <td>John Doe</td>
+                        <?php foreach ($visibleWorks as $work): ?>
 
-                            <td>
-                                <span class="badge text-bg-secondary">
-                                    Planned
-                                </span>
-                            </td>
+                            <?php
+                            $responsible = $work['assigned_user_name']
+                                ?? $work['assigned_team_name']
+                                ?? 'Unassigned';
+                            ?>
 
-                            <td>0%</td>
+                            <tr class="<?= SessionManager::role() === 'staff'
+                                && ($canEditWork[(int) $work['id']] ?? false)
+                                    ? 'table-primary'
+                                    : '' ?>">
+                                <td><?= (int) $work['id'] ?></td>
 
-                            <td>
-                                <button 
-                                type="button"
-                                class="btn btn-sm btn-outline-primary"
-                                disabled
-                                >
-                                    View
-                                </button>
+                                <td>
+                                    <?= htmlspecialchars($work['title'], ENT_QUOTES, 'UTF-8') ?>
+                                </td>
 
-                                <?php if (Authorization::can('works.update')): ?>
-                                    <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-secondary"
-                                    disabled
-                                    >
-                                        Edit
-                                    </button>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
+                                <td>
+                                    <?= htmlspecialchars($work['villa_name'], ENT_QUOTES, 'UTF-8') ?>
+                                </td>
 
-                    </tbody>
+                                <td>
+                                    <?= htmlspecialchars($work['category'], ENT_QUOTES, 'UTF-8') ?>
+                                </td>
 
-                </table>
+                                <td>
+                                    <?= htmlspecialchars($work['status'], ENT_QUOTES, 'UTF-8') ?>
+                                </td>
 
-            </div>
+                                <td>
+                                    <?= htmlspecialchars($responsible, ENT_QUOTES, 'UTF-8') ?>
+                                </td>
+
+                                <td>
+                                    <?= htmlspecialchars($work['planned_date'] ?? '-', ENT_QUOTES, 'UTF-8') ?>
+                                </td>
+
+                                <td>
+                                    <a
+                                        href="/?page=works&amp;action=show&amp;id=<?= (int) $work['id'] ?>"
+                                        class="btn btn-sm btn-outline-info">
+                                        View
+                                    </a>
+                            
+                                    <?php if ($canEditWork[(int) $work['id']] ?? false): ?>
+                                        <a
+                                            href="/?page=works&amp;action=edit&amp;id=<?= (int) $work['id'] ?>"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <?= SessionManager::role() === 'staff'
+                                                ? 'Edit Progress'
+                                                : 'Edit' ?>
+                                        </a>
+                                    <?php endif; ?>
+
+                                    <?php if (Authorization::can('works.delete')): ?>
+                                        <form
+                                            method="POST"
+                                            action="/?page=works&amp;action=delete&amp;id=<?= (int) $work['id'] ?>"
+                                            class="d-inline"
+                                            onsubmit="return confirm('Delete this work?');"
+                                        >
+                                            <?= Csrf::field() ?>
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-sm btn-outline-danger">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+
+                        <?php endforeach; ?>
+
+                    <?php endif; ?>
+                </tbody>
+            </table>
 
         </div>
     </div>

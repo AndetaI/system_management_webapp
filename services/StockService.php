@@ -10,7 +10,8 @@ class StockService
         private StockMovementRepository $stockMovementRepository,
         private MaterialUsageRepository $materialUsageRepository,
         private MaterialRepository $materialRepository,
-        private WorkRepository $workRepository
+        private WorkRepository $workRepository,
+        private SupplierRepository $supplierRepository
     ) {
     }
 public function useMaterial(array $data): array
@@ -195,4 +196,145 @@ public function useMaterial(array $data): array
         throw $exception;
     }
 }
+
+public function receiveMaterial(array $data): array
+{
+    $materialId = filter_var(
+        $data['material_id'] ?? null,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+
+    $supplierId = filter_var(
+        $data['supplier_id'] ?? null,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+
+    $quantity = trim((string) ($data['quantity'] ?? ''));
+    $description = trim((string) ($data['description'] ?? ''));
+
+    $errors = [];
+
+    // Validate material.
+    if (!$materialId) {
+        $errors['material_id'] = ['Select a valid material.'];
+    } elseif (
+        $this->materialRepository->findById($materialId) === null
+    ) {
+        $errors['material_id'] = ['Material not found.'];
+    }
+
+    if (!$supplierId) {
+        $errors['supplier_id'] = ['Select a valid supplier.'];
+    } elseif ($this->supplierRepository->findById($supplierId) === null) {
+        $errors['supplier_id'] = ['Supplier not found.'];
+    }
+
+    
+
+    // Validate quantity.
+    if (
+        !preg_match('/^\d+(?:\.\d{1,2})?$/D', $quantity)
+        || (float) $quantity <= 0
+        || (float) $quantity > 99999999.99
+    ) {
+        $errors['quantity'] = [
+            'Enter a positive quantity with up to 2 decimal places.'
+        ];
+    }
+
+    // Validate description.
+    if (mb_strlen($description) > 255) {
+        $errors['description'] = [
+            'Description cannot exceed 255 characters.'
+        ];
+    }
+    if ($materialId && $supplierId) {
+        $material = $this->materialRepository->findById($materialId);
+
+        if (
+            $material !== null &&
+            (int) $material['supplier_id'] !== $supplierId
+        ) {
+            $errors['supplier_id'] = [
+                'This supplier is not assigned to the selected material.'
+            ];
+        }
+    }
+
+    if ($errors !== []) {
+        return [
+            'success' => false,
+            'errors' => $errors,
+        ];
+    }
+
+    try {
+        $this->pdo->beginTransaction();
+
+        // Lock the stock row.
+        $stock = $this->stockRepository
+            ->findByMaterialForUpdate($materialId);
+
+        if ($stock === null) {
+            $this->pdo->rollBack();
+
+            return [
+                'success' => false,
+                'errors' => [
+                    'quantity' => ['Stock record not found.']
+                ],
+            ];
+        }
+
+        $newQuantity = round(
+            (float) $stock['quantity'] + (float) $quantity,
+            2
+        );
+
+        if ($newQuantity > 99999999.99) {
+            $this->pdo->rollBack();
+
+            return [
+                'success' => false,
+                'errors' => [
+                    'quantity' => ['Stock quantity exceeds the maximum.']
+                ],
+            ];
+        }
+
+        // Increase stock.
+        $this->stockRepository->updateQuantity(
+            $materialId,
+            $newQuantity
+        );
+
+        // Record IN movement.
+        $movementId = $this->stockMovementRepository->create([
+            'material_id' => $materialId,
+            'supplier_id' => $supplierId,
+            'type' => 'IN',
+            'quantity' => (float) $quantity,
+            'date' => date('Y-m-d H:i:s'),
+            'description' => $description !== '' ? $description : null,
+        ]);
+
+        $this->pdo->commit();
+
+        return [
+            'success' => true,
+            'movement_id' => $movementId,
+            'remaining_stock' => $newQuantity,
+        ];
+
+    } catch (Throwable $exception) {
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
+
+        throw $exception;
+    }
+}
+
 }

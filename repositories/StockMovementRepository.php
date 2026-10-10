@@ -13,6 +13,7 @@ class StockMovementRepository
         $sql = '
             INSERT INTO stock_movements (
                 material_id,
+                supplier_id,
                 type,
                 quantity,
                 date,
@@ -20,6 +21,7 @@ class StockMovementRepository
             )
             VALUES (
                 :material_id,
+                :supplier_id,
                 :type,
                 :quantity,
                 :date,
@@ -31,6 +33,7 @@ class StockMovementRepository
 
         $statement->execute([
             'material_id' => $data['material_id'],
+            'supplier_id' => $data['supplier_id'] ?? null,
             'type' => $data['type'],
             'quantity' => $data['quantity'],
             'date' => $data['date'],
@@ -40,18 +43,26 @@ class StockMovementRepository
         return (int) $this->pdo->lastInsertId();
     }
 
+  
     public function findAll(): array
     {
         $sql = '
             SELECT
-                id,
-                material_id,
-                type,
-                quantity,
-                date,
-                description
-            FROM stock_movements
-            ORDER BY id
+                sm.id,
+                sm.material_id,
+                m.name AS material_name,
+                sm.supplier_id,
+                s.name AS supplier_name,
+                sm.type,
+                sm.quantity,
+                sm.date,
+                sm.description
+            FROM stock_movements sm
+            INNER JOIN materials m
+                ON m.id = sm.material_id
+            LEFT JOIN suppliers s
+                ON s.id = sm.supplier_id
+            ORDER BY sm.date DESC, sm.id DESC
         ';
 
         $statement = $this->pdo->query($sql);
@@ -65,6 +76,7 @@ class StockMovementRepository
             SELECT
                 id,
                 material_id,
+                supplier_id,
                 type,
                 quantity,
                 date,
@@ -87,6 +99,7 @@ class StockMovementRepository
             SELECT
                 id,
                 material_id,
+                supplier_id,
                 type,
                 quantity,
                 date,
@@ -111,6 +124,7 @@ class StockMovementRepository
             UPDATE stock_movements
             SET
                 material_id = :material_id,
+                supplier_id = :supplier_id,
                 type = :type,
                 quantity = :quantity,
                 date = :date,
@@ -122,6 +136,7 @@ class StockMovementRepository
 
         return $statement->execute([
             'material_id' => $data['material_id'],
+            'supplier_id' => $data['supplier_id'],
             'type' => $data['type'],
             'quantity' => $data['quantity'],
             'date' => $data['date'],

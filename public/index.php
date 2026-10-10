@@ -47,7 +47,7 @@ require_once __DIR__ . '/../services/AuthService.php';
 require_once __DIR__ . '/../services/WorkService.php';
 require_once __DIR__ . '/../services/VillaService.php';
 require_once __DIR__ . '/../services/MaterialService.php';
-
+require_once __DIR__ . '/../services/StockService.php';
 /*
  * Security.
  */
@@ -63,6 +63,8 @@ require_once __DIR__ . '/../controllers/AuthController.php';
 require_once __DIR__ . '/../controllers/WorkController.php';
 require_once __DIR__ . '/../controllers/VillaController.php';
 require_once __DIR__ . '/../controllers/MaterialController.php';
+require_once __DIR__ . '/../controllers/SupplierController.php';
+require_once __DIR__ . '/../controllers/StockController.php';
 /*
  * Utilities.
  */
@@ -146,6 +148,26 @@ $materialController = new MaterialController(
     $supplierRepository
 );
 
+$supplierController = new SupplierController(
+    $supplierRepository,
+    $materialRepository
+);
+$stockService = new StockService(
+    $pdo,
+    $stockRepository,
+    $stockMovementRepository,
+    $materialUsageRepository,
+    $materialRepository,
+    $workRepository,
+    $supplierRepository
+);
+$stockController = new StockController(
+    $stockService,
+    $materialRepository,
+    $supplierRepository,
+    $stockRepository,
+    $stockMovementRepository
+);
 /*
  * Determine requested page.
  */
@@ -415,24 +437,65 @@ switch ($page) {
     break;
 
     case 'stock':
-        Authorization::requirePermission(
-            'stock.view'
-        );
+        Authorization::requirePermission('materials.view');
+        $action = $_GET['action'] ?? 'index';
 
-        require __DIR__
-            . '/../views/pages/stock/index.php';
+        switch ($action){
+            case 'index':
+                $stockController->index();
+                break;
+
+
+            case 'in':
+                $stockController->stockInForm();
+                break;
+
+            case 'store-in':
+                $stockController->stockInStore();
+                break;
+            
+            case'movements':
+                $stockController->movements();
+                break;
+
+            default:
+                http_response_code(404);
+                exit('Stock action not found.');
+        }
 
         break;
-
     case 'suppliers':
-        Authorization::requirePermission(
-            'suppliers.view'
-        );
+        $action = $_GET['action'] ?? 'index';
 
-        require __DIR__
-            . '/../views/pages/suppliers/index.php';
+        switch ($action){
+            case 'index':
+                $supplierController->index();
+                break;
+            case 'create':
+                $supplierController->create();
+                break;
+            case 'store':
+                $supplierController->store();
+                break;
 
+            case 'edit':
+                $supplierController->edit();
+                break;
+
+            case 'update':
+                $supplierController->update();
+                break;
+
+            case 'delete':
+                $supplierController->delete();
+                break;
+
+            default:
+                http_response_code(404);
+                exit('Action not found.');
+        }
         break;
+        
 
     case 'teams':
         Authorization::requirePermission(

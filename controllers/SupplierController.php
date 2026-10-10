@@ -1,0 +1,186 @@
+<?php
+
+declare(strict_types=1);
+
+class SupplierController
+{
+    public function __construct(
+        private SupplierRepository $supplierRepository,
+        private MaterialRepository $materialRepository
+    ) {
+    }
+
+    private function requireAdmin(): void
+    {
+        if (SessionManager::role() !== 'admin') {
+            http_response_code(403);
+            exit('403 Forbidden');
+        }
+    }
+
+    private function requirePost(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            exit('405 Method Not Allowed');
+        }
+    }
+
+    public function index(): void
+    {
+        $search = trim((string) ($_GET['search'] ?? ''));
+
+        $suppliers = $this->supplierRepository->findAll();
+
+        if ($search !== '') {
+            $suppliers = array_values(array_filter(
+                $suppliers,
+                static fn(array $supplier): bool =>
+                    stripos((string) $supplier['name'], $search) !== false
+            ));
+        }
+
+        require __DIR__ . '/../views/pages/suppliers/index.php';
+    }
+
+    public function create(): void
+    {
+        $this->requireAdmin();
+
+        $errors = [];
+        $old = [];
+
+        require __DIR__ . '/../views/pages/suppliers/create.php';
+    }
+
+    public function store(): void
+    {
+        $this->requireAdmin();
+        $this->requirePost();
+        Csrf::requireValidToken();
+
+        $errors = $this->validateSupplier($_POST);
+
+        if ($errors !== []) {
+            $old = $_POST;
+            require __DIR__ . '/../views/pages/suppliers/create.php';
+            return;
+        }
+
+        $this->supplierRepository->create(
+            $this->supplierData($_POST)
+        );
+
+        header('Location: /?page=suppliers');
+        exit;
+    }
+
+    public function edit(): void
+    {
+        $this->requireAdmin();
+
+        $id = (int) ($_GET['id'] ?? 0);
+        $supplier = $this->supplierRepository->findById($id);
+
+        if ($supplier === null) {
+            http_response_code(404);
+            exit('Supplier not found.');
+        }
+
+        $errors = [];
+
+        require __DIR__ . '/../views/pages/suppliers/edit.php';
+    }
+
+    public function update(): void
+    {
+        $this->requireAdmin();
+        $this->requirePost();
+        Csrf::requireValidToken();
+
+        $id = (int) ($_GET['id'] ?? 0);
+        $supplier = $this->supplierRepository->findById($id);
+
+        if ($supplier === null) {
+            http_response_code(404);
+            exit('Supplier not found.');
+        }
+
+        $errors = $this->validateSupplier($_POST);
+
+        if ($errors !== []) {
+            $supplier = array_merge($supplier, $_POST);
+            require __DIR__ . '/../views/pages/suppliers/edit.php';
+            return;
+        }
+
+        $this->supplierRepository->update(
+            $id,
+            $this->supplierData($_POST)
+        );
+
+        header('Location: /?page=suppliers');
+        exit;
+    }
+
+    public function delete(): void
+    {
+        $this->requireAdmin();
+        $this->requirePost();
+        Csrf::requireValidToken();
+
+        $id = (int) ($_GET['id'] ?? 0);
+
+        if ($this->supplierRepository->findById($id) === null) {
+            http_response_code(404);
+            exit('Supplier not found.');
+        }
+
+        if ($this->materialRepository->existsBySupplierId($id)) {
+            http_response_code(400);
+            exit('Cannot delete supplier because materials reference it.');
+        }
+
+        $this->supplierRepository->delete($id);
+
+        header('Location: /?page=suppliers');
+        exit;
+    }
+
+    private function validateSupplier(array $data): array
+    {
+        $errors = [];
+
+        $name = trim((string) ($data['name'] ?? ''));
+        $email = trim((string) ($data['email'] ?? ''));
+
+        if ($name === '' || mb_strlen($name) > 150) {
+            $errors['name'] = 'Supplier name is required (max 150 characters).';
+        }
+
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Enter a valid email address.';
+        }
+
+        foreach (['email' => 255, 'phone' => 50,
+                  'address' => 255, 'contact_person' => 150] as $field => $max) {
+            if (mb_strlen(trim((string) ($data[$field] ?? ''))) > $max) {
+                $errors[$field] = "Maximum $max characters allowed.";
+            }
+        }
+
+        return $errors;
+    }
+
+    private function supplierData(array $data): array
+    {
+        $result = [];
+
+        foreach (['name', 'email', 'phone', 'address', 'contact_person'] as $field) {
+            $value = trim((string) ($data[$field] ?? ''));
+            $result[$field] = $value === '' ? null : $value;
+        }
+
+        return $result;
+    }
+}

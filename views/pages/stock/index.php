@@ -24,7 +24,9 @@ require __DIR__ . '/../../layouts/sidebar.php';
             <div class="card h-100">
                 <div class="card-body">
                     <h2 class="h5">Materials in Stock</h2>
-                    <p class="display-6 fw-bold mb-0">0</p>
+                    <p class="display-6 fw-bold mb-0">
+                        <?= $materialsInStock ?>
+                    </p>                
                 </div>
             </div>
         </div>
@@ -33,7 +35,9 @@ require __DIR__ . '/../../layouts/sidebar.php';
             <div class="card h-100">
                 <div class="card-body">
                     <h2 class="h5">Low Stock</h2>
-                    <p class="display-6 fw-bold mb-0">0</p>
+                    <p class="display-6 fw-bold mb-0">
+                        <?= $lowStock ?>
+                    </p>
                 </div>
             </div>
         </div>
@@ -42,7 +46,9 @@ require __DIR__ . '/../../layouts/sidebar.php';
             <div class="card h-100">
                 <div class="card-body">
                     <h2 class="h5">Today's Movements</h2>
-                    <p class="display-6 fw-bold mb-0">0</p>
+                    <p class="display-6 fw-bold mb-0">
+                        <?= $todayMovements ?>
+                    </p>
                 </div>
             </div>
         </div>
@@ -52,9 +58,12 @@ require __DIR__ . '/../../layouts/sidebar.php';
 
     <div class="mb-3">
 
-        <button class="btn btn-success me-2">
-            Stock In
-        </button>
+        <?php if (SessionManager::role() === 'admin'): ?>
+            <a href="/?page=stock&amp;action=in"
+            class="btn btn-success me-2">
+                Stock In
+            </a>
+        <?php endif; ?>
 
         <button class="btn btn-warning">
             Stock Out
@@ -65,8 +74,13 @@ require __DIR__ . '/../../layouts/sidebar.php';
 
     <div class="card">
 
-        <div class="card-header">
-            <h2 class="h5 mb-0">Stock Movements</h2>
+       <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Recent Stock Movements</h2>
+
+            <a href="/?page=stock&amp;action=movements"
+            class="btn btn-outline-primary btn-sm">
+                View All Movements
+            </a>
         </div>
 
         <div class="card-body">
@@ -85,13 +99,61 @@ require __DIR__ . '/../../layouts/sidebar.php';
                         </tr>
                     </thead>
 
+                    
                     <tbody>
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">
-                                No stock movements have been registered yet.
-                            </td>
-                        </tr>
+                        <?php if (empty($recentMovements)): ?>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">
+                                    No stock movements have been registered yet.
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($recentMovements as $movement): ?>
+                                <tr>
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            (string) $movement['date'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            (string) ($movement['material_name'] ?? $movement['material_id']),
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?php if ($movement['type'] === 'IN'): ?>
+                                            <span class="badge bg-success">IN</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning text-dark">OUT</span>
+                                        <?php endif; ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            (string) $movement['quantity'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            (string) ($movement['description'] ?? '-'),
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
+
 
                 </table>
 

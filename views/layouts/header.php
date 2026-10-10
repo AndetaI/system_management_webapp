@@ -35,20 +35,65 @@
             Barkea Resort
         </a>
 
-        <form 
-        method="POST" 
-        action="/?page=logout"
-        class="d-inline"
-        >
-            <?= Csrf::field() ?>
-            <button
-                type="submit"
-                class="btn btn-link text-light text-decoration-none p-0"
         
-        >
-            Logout
-        </button>
-        </form>
+        <?php
+        $currentUser = SessionManager::user();
+
+        $displayName = $currentUser['name']
+            ?? $currentUser['username']
+            ?? 'User';
+
+        $displayRole = ucfirst((string) ($currentUser['role'] ?? ''));
+        ?>
+
+
+        <div class="d-flex align-items-center gap-3">
+
+            <!-- Current user profile -->
+            <?php if ($currentUser !== null): ?>
+                <div class="d-flex align-items-center gap-2 text-light">
+
+                    <span class="d-inline-flex align-items-center justify-content-center
+                                rounded-circle bg-secondary"
+                        style="width: 36px; height: 36px;"
+                        aria-hidden="true">
+                        &#128100;
+                    </span>
+
+                    <div class="d-flex flex-column lh-sm">
+                        <span class="fw-semibold">
+                            <?= htmlspecialchars(
+                                (string) $displayName,
+                                ENT_QUOTES,
+                                'UTF-8'
+                            ) ?>
+                        </span>
+
+                        <small class="text-white-50">
+                            <?= htmlspecialchars(
+                                $displayRole,
+                                ENT_QUOTES,
+                                'UTF-8'
+                            ) ?>
+                        </small>
+                    </div>
+
+                </div>
+            <?php endif; ?>
+
+            <!-- Logout -->
+            <form method="POST"
+                action="/?page=logout"
+                class="d-inline">
+
+                <?= Csrf::field() ?>
+
+                <button type="submit"
+                        class="btn btn-link text-light text-decoration-none p-0">
+                    Logout
+                </button>
+
+            </form>
 
     </div>
 </nav>

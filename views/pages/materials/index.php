@@ -32,7 +32,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
                 <input type="hidden" name="page" value="materials">
 
                 <div class="row g-3">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <label for="materialSearch" class="form-label">
                             Search
                         </label>
@@ -44,7 +44,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
                                placeholder="Search material...">
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label for="materialCategory" class="form-label">
                             Category
                         </label>
@@ -60,11 +60,44 @@ require __DIR__ . '/../../layouts/sidebar.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    
+                    <div class="col-md-3">
+                        <label for="materialStock" class="form-label">
+                            Stock Status
+                        </label>
 
-                    <div class="col-md-3 d-flex align-items-end">
+                        <select name="stock"
+                                id="materialStock"
+                                class="form-select">
+
+                            <option value="">All stock levels</option>
+
+                            <option value="in_stock"
+                                <?= $stockStatus === 'in_stock' ? 'selected' : '' ?>>
+                                In Stock (10 or more)
+                            </option>
+
+                            <option value="low_stock"
+                                <?= $stockStatus === 'low_stock' ? 'selected' : '' ?>>
+                                Low Stock (below 10)
+                            </option>
+
+                            <option value="out_of_stock"
+                                <?= $stockStatus === 'out_of_stock' ? 'selected' : '' ?>>
+                                Out of Stock
+                            </option>
+
+                        </select>
+                    </div>
+
+
+                    <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">
                             Filter
                         </button>
+                        <a href="/?page=materials" class="btn btn-secondary">
+                            Clear
+                        </a>
                     </div>
                 </div>
             </form>

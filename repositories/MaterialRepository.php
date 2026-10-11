@@ -64,6 +64,75 @@ class MaterialRepository
 
         return $statement->fetchAll();
     }
+    
+    public function findCategories(): array
+    {
+        $statement = $this->pdo->query('
+            SELECT DISTINCT category
+            FROM materials
+            WHERE category IS NOT NULL AND category <> \'\'
+            ORDER BY category ASC
+        ');
+
+        return $statement->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    public function search(
+        string $search,
+        string $category,
+        string $stockStatus
+    ): array {
+        $sql = '
+            SELECT
+                m.id,
+                m.supplier_id,
+                m.name,
+                m.category,
+                m.unit,
+                m.price,
+                m.description,
+                COALESCE(s.quantity, 0) AS quantity
+            FROM materials m
+            LEFT JOIN stock s ON s.material_id = m.id
+            WHERE 1 = 1
+        ';
+
+        $params = [];
+
+        if ($search !== '') {
+            $sql .= ' AND m.name LIKE :search';
+            $params['search'] = '%' . $search . '%';
+        }
+
+        if ($category !== '') {
+            $sql .= ' AND m.category = :category';
+            $params['category'] = $category;
+        }
+
+        // Stock filter is restricted to known values.
+        switch ($stockStatus) {
+            case 'in_stock':
+                $sql .= ' AND COALESCE(s.quantity, 0) >= 10';
+                break;
+
+            case 'low_stock':
+                $sql .= ' AND COALESCE(s.quantity, 0) > 0
+                        AND COALESCE(s.quantity, 0) < 10';
+                break;
+
+            case 'out_of_stock':
+                $sql .= ' AND COALESCE(s.quantity, 0) = 0';
+                break;
+        }
+
+        $sql .= ' ORDER BY m.id DESC';
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($params);
+
+        return $statement->fetchAll();
+    }
+
 
     public function findById(int $id): ?array
     {

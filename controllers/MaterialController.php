@@ -32,34 +32,41 @@ class MaterialController
         Csrf::requireValidToken();
     }
 
+
     public function index(): void
     {
         $search = trim((string) ($_GET['search'] ?? ''));
         $category = trim((string) ($_GET['category'] ?? ''));
+        $stockStatus = (string) ($_GET['stock'] ?? '');
 
-        $materials = $this->materialRepository->findAll();
+        // Whitelist accepted stock filters.
+        $allowedStockFilters = [
+            '',
+            'in_stock',
+            'low_stock',
+            'out_of_stock',
+        ];
 
-        $materials = array_values(array_filter(
-            $materials,
-            static function (array $material) use ($search, $category): bool {
-                $matchesSearch = $search === ''
-                    || stripos((string) $material['name'], $search) !== false;
+        if (!in_array($stockStatus, $allowedStockFilters, true)) {
+            $stockStatus = '';
+        }
 
-                $matchesCategory = $category === ''
-                    || $material['category'] === $category;
+        $categories = $this->materialRepository->findCategories();
 
-                return $matchesSearch && $matchesCategory;
-            }
-        ));
+        // Only accept existing categories.
+        if ($category !== '' && !in_array($category, $categories, true)) {
+            $category = '';
+        }
 
-        $categories = array_values(array_unique(array_column(
-            $this->materialRepository->findAll(),
-            'category'
-        )));
-        sort($categories);
+        $materials = $this->materialRepository->search(
+            $search,
+            $category,
+            $stockStatus
+        );
 
         require __DIR__ . '/../views/pages/materials/index.php';
     }
+
 
     public function show(): void
     {

@@ -14,14 +14,52 @@ class WorkController
     ) {
     }
 
+        
     public function index(): void
     {
-        Authorization::requirePermission(
-            'works.view'
+        Authorization::requirePermission('works.view');
+
+        $search = trim((string) ($_GET['search'] ?? ''));
+        $status = trim((string) ($_GET['status'] ?? ''));
+        $category = trim((string) ($_GET['category'] ?? ''));
+
+        $villaId = filter_var(
+            $_GET['villa_id'] ?? 0,
+            FILTER_VALIDATE_INT
         );
 
-        $works = $this->workRepository->findAll();
+        if ($villaId === false || $villaId < 0) {
+            $villaId = 0;
+        }
 
+        // Whitelist permitted work statuses.
+        $allowedStatuses = [
+            '',
+            'planned',
+            'in_progress',
+            'completed',
+        ];
+
+        if (!in_array($status, $allowedStatuses, true)) {
+            $status = '';
+        }
+
+        $categories = $this->workRepository->findCategories();
+
+        if ($category !== '' && !in_array($category, $categories, true)) {
+            $category = '';
+        }
+
+        $villas = $this->villaRepository->findAll();
+
+        $works = $this->workRepository->search(
+            $search,
+            $status,
+            $category,
+            $villaId
+        );
+
+        // Preserve existing work-edit authorization.
         $canEditWork = [];
 
         $isAdmin = SessionManager::role() === 'admin';
@@ -29,20 +67,20 @@ class WorkController
 
         foreach ($works as $work) {
             $workId = (int) $work['id'];
+
             $canEditWork[$workId] = $isAdmin;
 
             if ($isStaff) {
                 $canEditWork[$workId] =
-                $this->workAssignmentRepository
-                ->isWorkAssignedToUser(
-                         $workId,
-                    (int) SessionManager::userId()
-                );
-    }
-}
+                    $this->workAssignmentRepository
+                        ->isWorkAssignedToUser(
+                            $workId,
+                            (int) SessionManager::userId()
+                        );
+            }
+        }
 
-        require __DIR__
-            . '/../views/pages/works/index.php';
+        require __DIR__ . '/../views/pages/works/index.php';
     }
 
     /*

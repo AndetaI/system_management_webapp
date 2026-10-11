@@ -14,11 +14,69 @@ class VillaController
     /*
      * Display all villas.
      */
+
     public function index(): void
     {
         Authorization::requirePermission('villas.view');
 
-        $villas = $this->villaRepository->findAll();
+        $search = trim((string) ($_GET['search'] ?? ''));
+
+        $groupId = filter_var(
+            $_GET['group_id'] ?? 0,
+            FILTER_VALIDATE_INT
+        );
+
+        $typologyId = filter_var(
+            $_GET['typology_id'] ?? 0,
+            FILTER_VALIDATE_INT
+        );
+
+        if ($groupId === false || $groupId < 0) {
+            $groupId = 0;
+        }
+
+        if ($typologyId === false || $typologyId < 0) {
+            $typologyId = 0;
+        }
+
+        $status = trim((string) ($_GET['status'] ?? ''));
+
+        $groups = $this->villaRepository->findFilterGroups();
+        $typologies = $this->villaRepository->findFilterTypologies();
+        $statuses = $this->villaRepository->findFilterStatuses();
+
+
+        $typologyName = trim((string) ($_GET['typology'] ?? ''));
+
+        if (
+            $typologyName !== ''
+            && !in_array($typologyName, $typologies, true)
+        ) {
+            $typologyName = '';
+        }
+        // Accept only existing group IDs.
+        $validGroupIds = array_map(
+            'intval',
+            array_column($groups, 'id')
+        );
+
+        if ($groupId > 0 && !in_array($groupId, $validGroupIds, true)) {
+            $groupId = 0;
+        }
+
+
+
+        // Accept only existing status values.
+        if ($status !== '' && !in_array($status, $statuses, true)) {
+            $status = '';
+        }
+
+        $villas = $this->villaRepository->search(
+            $search,
+            $groupId,
+            $typologyName,
+            $status
+        );
 
         require __DIR__ . '/../views/pages/villas/index.php';
     }

@@ -3,30 +3,6 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../layouts/header.php';
 require __DIR__ . '/../../layouts/sidebar.php';
-
-$search = trim((string) ($_GET['search'] ?? ''));
-$visibleWorks = array_filter(
-    $works,
-    static function (array $work) use ($search): bool {
-        if ($search === '') {
-            return true;
-        }
-
-        $responsible = $work['assigned_user_name']
-            ?? $work['assigned_team_name']
-            ?? '';
-
-        $searchable = implode(' ', [
-            $work['title'],
-            $work['category'],
-            $work['villa_name'],
-            $work['status'],
-            $responsible
-        ]);
-
-        return stripos($searchable, $search) !== false;
-    }
-);
 ?>
 
 <main class="container-fluid p-4">
@@ -65,23 +41,92 @@ $visibleWorks = array_filter(
         <?php unset($_SESSION['flash_error']); ?>
     <?php endif; ?>
 
+
     <form method="GET" action="/" class="mb-4">
         <input type="hidden" name="page" value="works">
 
-        <div class="input-group">
-            <input
-                type="text"
-                name="search"
-                class="form-control"
-                placeholder="Search works..."
-                value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>"
-            >
+        <div class="row g-3">
 
-            <button type="submit" class="btn btn-primary">
-                Search
-            </button>
+            <!-- Search -->
+            <div class="col-md-4">
+                <label for="workSearch" class="form-label">Search</label>
+                <input
+                    type="search"
+                    id="workSearch"
+                    name="search"
+                    class="form-control"
+                    placeholder="Search works..."
+                    value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>"
+                >
+            </div>
+
+            <!-- Status -->
+            <div class="col-md-2">
+                <label for="workStatus" class="form-label">Status</label>
+                <select name="status" id="workStatus" class="form-select">
+                    <option value="">All statuses</option>
+
+                    <option value="planned"
+                        <?= $status === 'planned' ? 'selected' : '' ?>>
+                        Planned
+                    </option>
+
+                    <option value="in_progress"
+                        <?= $status === 'in_progress' ? 'selected' : '' ?>>
+                        In Progress
+                    </option>
+
+                    <option value="completed"
+                        <?= $status === 'completed' ? 'selected' : '' ?>>
+                        Completed
+                    </option>
+                </select>
+            </div>
+
+            <!-- Category -->
+            <div class="col-md-2">
+                <label for="workCategory" class="form-label">Category</label>
+                <select name="category" id="workCategory" class="form-select">
+                    <option value="">All categories</option>
+
+                    <?php foreach ($categories as $item): ?>
+                        <option value="<?= htmlspecialchars($item, ENT_QUOTES, 'UTF-8') ?>"
+                            <?= $category === $item ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($item, ENT_QUOTES, 'UTF-8') ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Villa -->
+            <div class="col-md-2">
+                <label for="workVilla" class="form-label">Villa</label>
+                <select name="villa_id" id="workVilla" class="form-select">
+                    <option value="">All villas</option>
+
+                    <?php foreach ($villas as $villa): ?>
+                        <option value="<?= (int) $villa['id'] ?>"
+                            <?= $villaId === (int) $villa['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($villa['name'], ENT_QUOTES, 'UTF-8') ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    Filter
+                </button>
+
+                <a href="/?page=works" class="btn btn-outline-secondary">
+                    Clear
+                </a>
+            </div>
+
         </div>
     </form>
+
 
     <div class="card shadow-sm">
         <div class="card-body table-responsive">
@@ -101,7 +146,7 @@ $visibleWorks = array_filter(
                 </thead>
 
                 <tbody>
-                    <?php if ($visibleWorks === []): ?>
+                    <?php if ($works === []): ?>
                         <tr>
                             <td colspan="8" class="text-center">
                                 No works found.
@@ -109,7 +154,7 @@ $visibleWorks = array_filter(
                         </tr>
                     <?php else: ?>
 
-                        <?php foreach ($visibleWorks as $work): ?>
+                        <?php foreach ($works as $work): ?>
 
                             <?php
                             $responsible = $work['assigned_user_name']

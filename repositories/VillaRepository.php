@@ -67,6 +67,112 @@ class VillaRepository
         return $statement->fetchAll();
     }
 
+        
+    public function search(
+        string $search,
+        int $groupId,
+        string $typologyName,
+        string $status
+    ): array {
+        $sql = '
+            SELECT
+                v.id,
+                v.typology_id,
+                v.name,
+                v.status,
+                v.description,
+                v.planned_date,
+                v.actual_date,
+                vt.name AS typology_name,
+                vg.name AS group_name
+            FROM villas v
+            INNER JOIN villa_typologies vt
+                ON vt.id = v.typology_id
+            INNER JOIN villa_groups vg
+                ON vg.id = vt.group_id
+            WHERE 1 = 1
+        ';
+
+        $params = [];
+
+        if ($search !== '') {
+            $sql .= '
+                AND (
+                    v.name LIKE :villa_search
+                    OR vg.name LIKE :group_search
+                    OR vt.name LIKE :typology_search
+                    OR v.status LIKE :status_search
+                )
+            ';
+
+            $searchValue = '%' . $search . '%';
+
+            $params['villa_search'] = $searchValue;
+            $params['group_search'] = $searchValue;
+            $params['typology_search'] = $searchValue;
+            $params['status_search'] = $searchValue;
+        }
+
+        if ($groupId > 0) {
+            $sql .= ' AND vg.id = :group_id';
+            $params['group_id'] = $groupId;
+        }
+
+        if ($typologyName !== '') {
+            $sql .= ' AND vt.name = :typology_name';
+            $params['typology_name'] = $typologyName;
+        }
+
+        if ($status !== '') {
+            $sql .= ' AND v.status = :status';
+            $params['status'] = $status;
+        }
+
+        $sql .= ' ORDER BY v.name ASC';
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($params);
+
+        return $statement->fetchAll();
+    }
+
+    public function findFilterGroups(): array
+    {
+        $statement = $this->pdo->query('
+            SELECT id, name
+            FROM villa_groups
+            ORDER BY name ASC
+        ');
+
+        return $statement->fetchAll();
+    }
+
+    public function findFilterStatuses(): array
+    {
+        $statement = $this->pdo->query('
+            SELECT DISTINCT status
+            FROM villas
+            WHERE status IS NOT NULL
+            AND status <> \'\'
+            ORDER BY status ASC
+        ');
+
+        return $statement->fetchAll(PDO::FETCH_COLUMN);
+    }
+    
+    public function findFilterTypologies(): array
+    {
+        $statement = $this->pdo->query('
+            SELECT DISTINCT name
+            FROM villa_typologies
+            ORDER BY name ASC
+        ');
+
+        return $statement->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+
+
     public function findById(int $id): ?array
     {
         $sql = '

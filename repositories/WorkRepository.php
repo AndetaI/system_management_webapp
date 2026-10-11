@@ -113,6 +113,97 @@ class WorkRepository
         return $work === false ? null : $work;
     }
 
+        
+    public function search(
+        string $search,
+        string $status,
+        string $category,
+        int $villaId
+    ): array {
+        $sql = '
+            SELECT
+                w.id,
+                w.villa_id,
+                v.name AS villa_name,
+                w.title,
+                w.category,
+                w.status,
+                w.description,
+                w.planned_date,
+                w.actual_date,
+                wa.user_id,
+                wa.team_id,
+                u.name AS assigned_user_name,
+                t.name AS assigned_team_name
+            FROM works w
+            INNER JOIN villas v ON v.id = w.villa_id
+            LEFT JOIN work_assignments wa ON wa.work_id = w.id
+            LEFT JOIN users u ON u.id = wa.user_id
+            LEFT JOIN teams t ON t.id = wa.team_id
+            WHERE 1 = 1
+        ';
+
+        $params = [];
+
+        if ($search !== '') {
+            $sql .= '
+                AND (
+                    w.title LIKE :title_search
+                    OR w.category LIKE :category_search
+                    OR v.name LIKE :villa_search
+                    OR w.status LIKE :status_search
+                    OR u.name LIKE :user_search
+                    OR t.name LIKE :team_search
+                )
+            ';
+
+            $searchValue = '%' . $search . '%';
+
+            $params['title_search'] = $searchValue;
+            $params['category_search'] = $searchValue;
+            $params['villa_search'] = $searchValue;
+            $params['status_search'] = $searchValue;
+            $params['user_search'] = $searchValue;
+            $params['team_search'] = $searchValue;
+        }
+
+        if ($status !== '') {
+            $sql .= ' AND w.status = :status';
+            $params['status'] = $status;
+        }
+
+        if ($category !== '') {
+            $sql .= ' AND w.category = :category';
+            $params['category'] = $category;
+        }
+
+        if ($villaId > 0) {
+            $sql .= ' AND w.villa_id = :villa_id';
+            $params['villa_id'] = $villaId;
+        }
+
+        $sql .= ' ORDER BY w.id DESC';
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($params);
+
+        return $statement->fetchAll();
+    }
+
+    public function findCategories(): array
+    {
+        $statement = $this->pdo->query('
+            SELECT DISTINCT category
+            FROM works
+            WHERE category IS NOT NULL
+            AND category <> \'\'
+            ORDER BY category ASC
+        ');
+
+        return $statement->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+
     public function update(int $id, array $data): bool
     {
         $sql = '

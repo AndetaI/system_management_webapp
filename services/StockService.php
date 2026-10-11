@@ -73,15 +73,34 @@ public function useMaterial(array $data): array
 
     /*
      * Business rule:
-     * Work must exist.
+     * Work must exist and belong to the selected villa
      */
-    if (
-        $this->workRepository->findById($workId)
-        === null
-    ) {
+    $work = $this->workRepository->findById($workId);
+    
+    if ($work === null) {
         $validator->addError(
             'work_id',
             'The selected work does not exist.'
+        );
+    }
+  
+    $villaId = filter_var(
+        $data['villa_id'] ?? null,
+        FILTER_VALIDATE_INT
+    );
+
+    if ($villaId === false || $villaId === null || $villaId <= 0) {
+        $validator->addError(
+            'villa_id',
+            'Please select a valid villa.'
+        );
+    } elseif (
+        $work !== null &&
+        (int) $work['villa_id'] !== $villaId
+    ) {
+        $validator->addError(
+            'villa_id',
+            'The selected work does not belong to the selected villa.'
         );
     }
 
@@ -105,6 +124,7 @@ public function useMaterial(array $data): array
             'errors' => $validator->errors(),
         ];
     }
+
 
     try {
         $this->pdo->beginTransaction();

@@ -60,6 +60,37 @@ class SupplierRepository
         return $statement->fetchAll();
     }
 
+    
+    public function search(string $search): array
+    {
+        $sql = '
+            SELECT
+                id,
+                name,
+                email,
+                phone,
+                address,
+                contact_person,
+                created_at
+            FROM suppliers
+            WHERE name LIKE :name
+            OR contact_person LIKE :contact
+            ORDER BY name ASC
+        ';
+
+        $statement = $this->pdo->prepare($sql);
+
+        $searchValue = '%' . $search . '%';
+
+        $statement->execute([
+            'name' => $searchValue,
+            'contact' => $searchValue,
+        ]);
+
+        return $statement->fetchAll();
+    }
+
+
     public function findById(int $id): ?array
     {
         $sql = '

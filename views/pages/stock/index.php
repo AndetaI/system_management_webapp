@@ -65,9 +65,10 @@ require __DIR__ . '/../../layouts/sidebar.php';
             </a>
         <?php endif; ?>
 
-        <button class="btn btn-warning">
-            Stock Out
-        </button>
+        <a href="/?page=stock&action=out"
+            class="btn btn-danger">
+                Stock Out
+            </a>
 
     </div>
 

@@ -166,7 +166,8 @@ $stockController = new StockController(
     $materialRepository,
     $supplierRepository,
     $stockRepository,
-    $stockMovementRepository
+    $stockMovementRepository,
+    $workRepository
 );
 /*
  * Determine requested page.
@@ -458,6 +459,12 @@ switch ($page) {
                 $stockController->movements();
                 break;
 
+            case 'out':
+                $stockController->stockOutForm();
+                break;
+            case 'store-out':
+                $stockController->stockOutStore();
+                break;
             default:
                 http_response_code(404);
                 exit('Stock action not found.');

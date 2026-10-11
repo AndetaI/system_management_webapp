@@ -32,35 +32,37 @@ require __DIR__ . '/../../layouts/sidebar.php';
         <?php endif; ?>
     </div>
 
-    <form method="GET" action="/" class="card mb-4">
-        <div class="card-body">
-            <input type="hidden" name="page" value="suppliers">
+    
+    <form method="GET" action="/" class="row g-2 mb-3">
+        <input type="hidden" name="page" value="suppliers">
 
-            <label for="supplierSearch" class="form-label">
+        <div class="col-md-5">
+            <input
+                type="search"
+                name="search"
+                class="form-control"
+                placeholder="Search suppliers..."
+                value="<?= htmlspecialchars(
+                    $search,
+                    ENT_QUOTES,
+                    'UTF-8'
+                ) ?>"
+            >
+        </div>
+
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">
                 Search
-            </label>
+            </button>
+        </div>
 
-            <div class="d-flex gap-2">
-                <input
-                    type="search"
-                    id="supplierSearch"
-                    name="search"
-                    class="form-control"
-                    placeholder="Search supplier..."
-                    value="<?= $escape($search) ?>"
-                >
-
-                <button type="submit" class="btn btn-primary">
-                    Search
-                </button>
-
-                <a href="/?page=suppliers"
-                   class="btn btn-outline-secondary">
-                    Clear
-                </a>
-            </div>
+        <div class="col-auto">
+            <a href="/?page=suppliers" class="btn btn-secondary">
+                Clear
+            </a>
         </div>
     </form>
+
 
     <div class="card">
         <div class="card-header">

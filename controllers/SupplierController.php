@@ -30,14 +30,10 @@ class SupplierController
     {
         $search = trim((string) ($_GET['search'] ?? ''));
 
-        $suppliers = $this->supplierRepository->findAll();
-
         if ($search !== '') {
-            $suppliers = array_values(array_filter(
-                $suppliers,
-                static fn(array $supplier): bool =>
-                    stripos((string) $supplier['name'], $search) !== false
-            ));
+            $suppliers = $this->supplierRepository->search($search);
+        }else {
+            $suppliers = $this->supplierRepository->findAll();
         }
 
         require __DIR__ . '/../views/pages/suppliers/index.php';

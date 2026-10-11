@@ -9,7 +9,8 @@ class StockController
         private MaterialRepository $materialRepository,
         private SupplierRepository $supplierRepository,
         private StockRepository $stockRepository,
-        private StockMovementRepository $stockMovementRepository
+        private StockMovementRepository $stockMovementRepository,
+        private WorkRepository $workRepository
     ) {
     }
 
@@ -107,6 +108,42 @@ class StockController
             $suppliers = $this->supplierRepository->findAll();
 
             require __DIR__ . '/../views/pages/stock/stock-in.php';
+            return;
+        }
+
+        header('Location: /?page=stock');
+        exit;
+    }
+
+    public function stockOutForm(): void
+    {
+        $this->requireAdmin();
+
+        $works = $this->workRepository->findAll();
+        $materials = $this->materialRepository->findAll();
+
+        $errors = [];
+        $old = [];
+
+        require __DIR__ . '/../views/pages/stock/remove.php';
+    }
+
+    public function stockOutStore(): void
+    {
+        $this->requireAdmin();
+        $this->requirePost();
+        $this->verifyCsrf();
+
+        $result = $this->stockService->useMaterial($_POST);
+
+        if (!$result['success']) {
+            $errors = $result['errors'] ?? [];
+            $old = $_POST;
+
+            $works = $this->workRepository->findAll();
+            $materials = $this->materialRepository->findAll();
+
+            require __DIR__ . '/../views/pages/stock/remove.php';
             return;
         }
 

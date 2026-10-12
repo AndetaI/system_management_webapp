@@ -21,7 +21,7 @@ return [
         'materials.create',
         'materials.update',
         'materials.delete',
-
+        'material_usage.create',
         'stock.view',
         'stock.update',
 
@@ -70,5 +70,6 @@ return [
         'works.update',
 
         'materials.view',
+        'material_usage.create'
     ],
 ];

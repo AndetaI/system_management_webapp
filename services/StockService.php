@@ -71,6 +71,24 @@ public function useMaterial(array $data): array
     $materialId = (int) $data['material_id'];
     $quantity = (float) $data['quantity'];
 
+    $quantityInput = trim((string) $data['quantity']);
+
+    /* quantity validation*/
+    if (
+        !preg_match('/^\d+(?:\.\d{1,2})?$/D', $quantityInput)
+        || $quantity <= 0
+        || $quantity > 99999999.99
+    ) {
+        return [
+            'success' => false,
+            'errors' => [
+                'quantity' => [
+                    'Enter a positive quantity with up to 2 decimal places.'
+                ]
+            ]
+        ];
+    }
+
     /*
      * Business rule:
      * Work must exist and belong to the selected villa

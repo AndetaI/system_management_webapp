@@ -202,7 +202,31 @@ public function edit(int $workId): void
             }
         
         $progressHistory = $this->workService->getProgressHistory($workId);
+        $canRecordMaterialUsage = Authorization::can(
+            'material_usage.create'
+        );
 
+        if (
+            $canRecordMaterialUsage &&
+            SessionManager::role() !== 'admin'
+        /*  if (in_array(
+                SessionManager::role(),
+                ['admin', 'manager'],
+                true
+            )) {
+                return true;
+            }*/
+        
+        ) {
+            $userId = SessionManager::userId();
+
+            $canRecordMaterialUsage = $userId !== null
+                && $this->workAssignmentRepository
+                    ->isWorkAssignedToUser(
+                        (int) $work['id'],
+                        $userId
+                    );
+        }
         $canUpdateProgress = Authorization::can('works.update')
             && (
                 SessionManager::role() === 'admin'

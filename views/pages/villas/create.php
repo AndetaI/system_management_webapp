@@ -104,7 +104,7 @@ function oldVillaValue(string $field): string
                                     ) ? 'selected' : '' ?>
                                 >
                                     <?= htmlspecialchars(
-                                        $typology['group_name'],
+                                        $typology['group_name']
                                         . ' - '
                                         . $typology['name'],
                                         ENT_QUOTES,

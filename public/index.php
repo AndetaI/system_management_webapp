@@ -40,6 +40,8 @@ require_once __DIR__ . '/../repositories/MaterialRepository.php';
 require_once __DIR__ . '/../repositories/SupplierRepository.php';
 require_once __DIR__ . '/../repositories/StockRepository.php';
 require_once __DIR__ . '/../repositories/StockMovementRepository.php';
+require_once __DIR__ . '/../repositories/DashboardRepository.php';
+require_once __DIR__ . '/../repositories/ReportRepository.php';
 /*
  * Services.
  */
@@ -65,6 +67,9 @@ require_once __DIR__ . '/../controllers/VillaController.php';
 require_once __DIR__ . '/../controllers/MaterialController.php';
 require_once __DIR__ . '/../controllers/SupplierController.php';
 require_once __DIR__ . '/../controllers/StockController.php';
+require_once __DIR__ . '/../controllers/DashboardController.php';
+require_once __DIR__ . '/../controllers/ReportController.php';
+
 /*
  * Utilities.
  */
@@ -82,6 +87,12 @@ $pdo = Database::getConnection();
 /*
  * Authentication dependencies.
  */
+$dashboardRepository = new DashboardRepository($pdo);
+$dashboardController = new DashboardController($dashboardRepository);
+
+$reportRepository = new ReportRepository($pdo);
+$reportController = new ReportController($reportRepository);
+
 $userRepository = new UserRepository($pdo);
 $authService = new AuthService($userRepository);
 
@@ -167,7 +178,8 @@ $stockController = new StockController(
     $supplierRepository,
     $stockRepository,
     $stockMovementRepository,
-    $workRepository
+    $workRepository,
+    $workAssignmentRepository
 );
 /*
  * Determine requested page.
@@ -211,13 +223,7 @@ if ($page === 'logout') {
 switch ($page) {
 
     case 'dashboard':
-        Authorization::requirePermission(
-            'dashboard.view'
-        );
-
-        require __DIR__
-            . '/../views/pages/dashboard/index.php';
-
+        $dashboardController->index();
         break;
 
     case 'villas':
@@ -524,15 +530,28 @@ switch ($page) {
 
         break;
 
+   
     case 'reports':
-        Authorization::requirePermission(
-            'reports.view'
-        );
+        Authorization::requirePermission('reports.view');
 
-        require __DIR__
-            . '/../views/pages/reports/index.php';
+        $action = $_GET['action'] ?? 'index';
+
+        switch ($action) {
+            case 'index':
+                $reportController->index();
+                break;
+
+            case 'villa-details':
+                $reportController->villaDetails();
+                break;
+
+            default:
+                http_response_code(404);
+                echo 'Report action not found.';
+        }
 
         break;
+
 
 
     default:

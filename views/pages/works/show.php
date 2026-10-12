@@ -40,6 +40,7 @@ if (!empty($work['assigned_user_name'])) {
         <?php endif; ?>
     <?php endforeach; ?>
 
+
     <div class="card shadow-sm mb-4">
         <div class="card-body">
 
@@ -87,6 +88,15 @@ if (!empty($work['assigned_user_name'])) {
                     <?= SessionManager::role() === 'staff'
                         ? 'Edit Progress'
                         : 'Edit Work' ?>
+                </a>
+            <?php endif; ?>
+            
+            <?php if ($canRecordMaterialUsage): ?>
+                <a
+                    href="/?page=stock&amp;action=out&amp;work_id=<?= (int) $work['id'] ?>"
+                    class="btn btn-outline-primary ms-2"
+                >
+                    Record Material Usage
                 </a>
             <?php endif; ?>
 

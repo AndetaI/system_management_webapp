@@ -73,6 +73,67 @@ body {
     transform: translateY(-2px);
 }
 
+/* Dashboard summary cards */
+
+.dashboard-stats .dashboard-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-top: 4px solid transparent;
+}
+
+.dashboard-stats .dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-card-villas {
+    border-top-color: #3b82f6 !important;
+}
+
+.dashboard-card-works {
+    border-top-color: #d99a27 !important;
+}
+
+.dashboard-card-materials {
+    border-top-color: #8b5cf6 !important;
+}
+
+.dashboard-card-low {
+    border-top-color: #f59e0b !important;
+}
+
+.dashboard-card-out {
+    border-top-color: #dc3545 !important;
+}
+
+.dashboard-stats .card-body {
+    padding: 1rem;
+}
+
+.dashboard-stats .dashboard-card .display-6 {
+    font-size: 2rem;
+    letter-spacing: -1px;
+}
+
+.dashboard-stats .dashboard-card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.dashboard-stats .dashboard-card-out .display-6 {
+    color: #dc3545;
+}
+/* Work Progress status badges */
+.work-progress-card .badge {
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+}
 
 /* 
    Tables */
@@ -173,5 +234,23 @@ body {
     .table {
         font-size: 0.9rem;
     }
+/* Compact dashboard cards on desktop */
+@media (min-width: 992px) {
+    .dashboard-stats .card-body {
+        padding: 0.85rem;
+    }
+
+    .dashboard-stats .dashboard-card h2 {
+        font-size: 0.95rem;
+    }
+
+    .dashboard-stats .dashboard-card .display-6 {
+        font-size: 1.9rem;
+    }
+
+    .dashboard-stats .dashboard-card p.text-muted {
+        font-size: 0.85rem;
+    }
+}
 
 }

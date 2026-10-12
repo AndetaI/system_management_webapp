@@ -42,6 +42,7 @@ require_once __DIR__ . '/../repositories/StockRepository.php';
 require_once __DIR__ . '/../repositories/StockMovementRepository.php';
 require_once __DIR__ . '/../repositories/DashboardRepository.php';
 require_once __DIR__ . '/../repositories/ReportRepository.php';
+require_once __DIR__ . '/../repositories/TeamMemberRepository.php';
 /*
  * Services.
  */
@@ -50,6 +51,8 @@ require_once __DIR__ . '/../services/WorkService.php';
 require_once __DIR__ . '/../services/VillaService.php';
 require_once __DIR__ . '/../services/MaterialService.php';
 require_once __DIR__ . '/../services/StockService.php';
+require_once __DIR__ . '/../services/TeamService.php';
+require_once __DIR__ . '/../services/UserService.php';
 /*
  * Security.
  */
@@ -69,6 +72,8 @@ require_once __DIR__ . '/../controllers/SupplierController.php';
 require_once __DIR__ . '/../controllers/StockController.php';
 require_once __DIR__ . '/../controllers/DashboardController.php';
 require_once __DIR__ . '/../controllers/ReportController.php';
+require_once __DIR__ . '/../controllers/TeamController.php';
+require_once __DIR__ . '/../controllers/UserController.php';
 
 /*
  * Utilities.
@@ -104,6 +109,7 @@ $villaTypologyRepository = new VillaTypologyRepository($pdo);
 $workAssignmentRepository = new WorkAssignmentRepository($pdo);
 
 $teamRepository = new TeamRepository($pdo);
+$teamMemberRepository = new TeamMemberRepository($pdo);
 
 $materialUsageRepository = new MaterialUsageRepository($pdo);
 $workProgressRepository = new WorkProgressRepository($pdo);
@@ -112,6 +118,16 @@ $materialRepository = new MaterialRepository($pdo);
 $supplierRepository = new SupplierRepository($pdo);
 $stockRepository = new StockRepository($pdo);
 $stockMovementRepository = new StockMovementRepository($pdo);
+
+$userService = new UserService(
+    $userRepository,
+    $workAssignmentRepository
+);
+
+$userController = new UserController(
+    $userRepository,
+    $userService
+);
 
 $workService = new WorkService(
     $pdo,
@@ -180,6 +196,19 @@ $stockController = new StockController(
     $stockMovementRepository,
     $workRepository,
     $workAssignmentRepository
+);
+$teamService = new TeamService(
+    $teamRepository,
+    $userRepository,
+    $teamMemberRepository,
+    $workAssignmentRepository
+);
+
+$teamController = new TeamController(
+    $teamRepository,
+    $teamService,
+    $teamMemberRepository,
+    $userRepository
 );
 /*
  * Determine requested page.
@@ -510,24 +539,89 @@ switch ($page) {
         break;
         
 
+    
     case 'teams':
-        Authorization::requirePermission(
-            'teams.view'
-        );
+        Authorization::requirePermission('teams.view');
 
-        require __DIR__
-            . '/../views/pages/teams/index.php';
+        $id = filter_var(
+            $_GET['id'] ?? null,
+            FILTER_VALIDATE_INT
+        );
+        $id = $id === false ? 0 : (int) $id;
+
+        switch ($_GET['action'] ?? 'index') {
+            case 'index':
+                $teamController->index();
+                break;
+
+            case 'create':
+                $teamController->create();
+                break;
+
+            case 'store':
+                $teamController->store();
+                break;
+
+            case 'show':
+                $teamController->show($id);
+                break;
+
+            case 'edit':
+                $teamController->edit($id);
+                break;
+
+            case 'update':
+                $teamController->update($id);
+                break;
+
+            case 'delete':
+                $teamController->delete($id);
+                break;
+
+            case 'add-member':
+                $teamController->addMember($id);
+                break;
+
+            case 'remove-member':
+                $teamController->removeMember($id);
+                break;
+
+            default:
+                http_response_code(404);
+                echo 'Unknown teams action.';
+        }
 
         break;
 
+
     case 'users':
-        Authorization::requirePermission(
-            'users.view'
-        );
+        Authorization::requirePermission('users.view');
+        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
+        $id = $id === false ? 0 : (int)$id;
+        switch ($_GET['action'] ?? 'index') {
+            case 'index': 
+                $userController->index(); 
+                break;
+            case 'create': 
+                $userController->create(); 
+                break;
+            case 'store': 
+                $userController->store(); 
+                break;
+            case 'show': 
+                $userController->show($id); 
+                break;
+            case 'edit':
+                $userController->edit($id);
+                break;
+            case 'update': 
+                $userController->update($id); 
+                break;
 
-        require __DIR__
-            . '/../views/pages/users/index.php';
-
+            default: 
+            http_response_code(404); 
+            echo 'Unknown users action.';
+        }
         break;
 
    

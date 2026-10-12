@@ -55,6 +55,8 @@ return [
         'stock.view',
 
         'suppliers.view',
+        
+        'users.view',
 
         'teams.view',
 

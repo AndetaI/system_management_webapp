@@ -154,7 +154,7 @@ $villaService = new VillaService(
     $villaTypologyRepository,
     $workRepository
 );
- $villaController = new VillaController(
+$villaController = new VillaController(
     $villaService,
     $villaRepository,
     $villaTypologyRepository
@@ -232,12 +232,12 @@ AuthMiddleware::requireAuthentication();
  * Logout is authenticated + POST + CSRF protected.
  */
 if ($page === 'logout') {
-    if($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
         echo 'Method not allowed.';
         exit;
     }
-    
+
     Csrf::requireValidToken();
 
     $authController->logout();
@@ -257,7 +257,7 @@ switch ($page) {
 
     case 'villas':
         $action = $_GET['action'] ?? 'index';
-         switch ($action) {
+        switch ($action) {
             case 'index':
                 $villaController->index();
                 break;
@@ -301,7 +301,7 @@ switch ($page) {
 
                 $villaController->edit($id);
                 break;
-            
+
             case 'update':
                 $id = filter_input(
                     INPUT_GET,
@@ -316,7 +316,7 @@ switch ($page) {
                 }
                 $villaController->update($id);
                 break;
-            
+
             case 'delete':
                 $id = filter_input(
                     INPUT_GET,
@@ -337,167 +337,151 @@ switch ($page) {
             default:
                 http_response_code(404);
                 echo 'Action not found.';
-         }
+        }
 
         break;
 
     case 'works':
+
         $action = $_GET['action'] ?? 'index';
-        
-        if ($action === 'index') {
-            $workController->index();
-            break;
-        }
 
-        if ($action === 'create') {
-            $workController->create();
-            break;
-        }
+        switch ($action) {
 
-        if ($action === 'edit') {
-            $workId = filter_input(
-                INPUT_GET,
-                'id',
-                FILTER_VALIDATE_INT
-            );
-
-            if ($workId === false || $workId === null) {
-                http_response_code(400);
-                echo 'Invalid work ID.';
+            case 'index':
+                $workController->index();
                 break;
-            }
 
-            $workController->edit($workId);
-            break;
-        }
-
-        if ($action === 'show') {
-            $id = filter_input(
-                INPUT_GET,
-                'id',
-                FILTER_VALIDATE_INT
-            );
-
-            if ($id === false || $id === null || $id <= 0) {
-                http_response_code(400);
-                echo 'Invalid work ID.';
+            case 'create':
+                $workController->create();
                 break;
-            }
 
-            $workController->show($id);
-            break;
-        }
+            case 'show':
+            case 'edit':
+            case 'update':
+            case 'delete':
 
-        if ($action === 'update') {
-            $workId = filter_input(
-                INPUT_GET,
-                'id',
-                FILTER_VALIDATE_INT
-            );
+                $workId = filter_input(
+                    INPUT_GET,
+                    'id',
+                    FILTER_VALIDATE_INT
+                );
 
-            if ($workId === false || $workId === null) {
-                http_response_code(400);
-                echo 'Invalid work ID.';
+                if (
+                    $workId === false ||
+                    $workId === null ||
+                    $workId <= 0
+                ) {
+                    http_response_code(400);
+                    echo 'Invalid work ID.';
+                    break;
+                }
+
+                switch ($action) {
+                    case 'show':
+                        $workController->show($workId);
+                        break;
+
+                    case 'edit':
+                        $workController->edit($workId);
+                        break;
+
+                    case 'update':
+                        $workController->update($workId);
+                        break;
+
+                    case 'delete':
+                        $workController->delete($workId);
+                        break;
+                }
+
                 break;
-            }
 
-            $workController->update($workId);
-            break;
-        }
-        if ($action === 'updateProgress'){
-            $workController->updateProgress();
-            break;
-
-        }
-
-        if ($action === 'delete') {
-            $workId = filter_input(
-                INPUT_GET,
-                'id',
-                FILTER_VALIDATE_INT
-            );
-
-            if ($workId === false || $workId === null) {
-                http_response_code(400);
-                echo 'Invalid work ID.';
+            case 'updateProgress':
+                $workController->updateProgress();
                 break;
-            }
 
-            $workController->delete($workId);
-            break;
-    }
+            default:
+                http_response_code(404);
+                echo 'Work action not found.';
+                break;
+        }
 
-    http_response_code(404);
-    echo 'Action not found.';
-    break;
+        break;
+
 
     case 'materials':
-    Authorization::requirePermission('materials.view');
-
-    $action = $_GET['action'] ?? 'index';
-
-    switch ($action) {
-        case 'index':
-            $materialController->index();
-            break;
-
-        case 'show':
-            $materialController->show();
-            break;
-
-        case 'create':
-            $materialController->create();
-            break;
-
-        case 'store':
-            $materialController->store();
-            break;
-
-        case 'edit':
-            $materialController->edit();
-            break;
-
-        case 'update':
-            $materialController->update();
-            break;
-
-        case 'delete':
-            $materialController->delete();
-            break;
-
-        default:
-            http_response_code(404);
-            echo 'Material action not found.';
-    }
-
-    break;
-
-    case 'stock':
         Authorization::requirePermission('materials.view');
+
         $action = $_GET['action'] ?? 'index';
 
-        switch ($action){
+        switch ($action) {
             case 'index':
+                $materialController->index();
+                break;
+
+            case 'show':
+                $materialController->show();
+                break;
+
+            case 'create':
+                $materialController->create();
+                break;
+
+            case 'store':
+                $materialController->store();
+                break;
+
+            case 'edit':
+                $materialController->edit();
+                break;
+
+            case 'update':
+                $materialController->update();
+                break;
+
+            case 'delete':
+                $materialController->delete();
+                break;
+
+            default:
+                http_response_code(404);
+                echo 'Material action not found.';
+        }
+
+        break;
+
+    case 'stock':
+
+        $action = $_GET['action'] ?? 'index';
+
+        switch ($action) {
+            case 'index':
+                Authorization::requirePermission('stock.view');
                 $stockController->index();
                 break;
 
+            case 'movements':
+                Authorization::requirePermission('stock.view');
+                $stockController->movements();
+                break;
 
             case 'in':
+                Authorization::requirePermission('stock.update');
                 $stockController->stockInForm();
                 break;
 
             case 'store-in':
+                Authorization::requirePermission('stock.update');
                 $stockController->stockInStore();
-                break;
-            
-            case'movements':
-                $stockController->movements();
                 break;
 
             case 'out':
+                Authorization::requirePermission('material_usage.create');
                 $stockController->stockOutForm();
                 break;
+
             case 'store-out':
+                Authorization::requirePermission('material_usage.create');
                 $stockController->stockOutStore();
                 break;
             default:
@@ -507,9 +491,10 @@ switch ($page) {
 
         break;
     case 'suppliers':
+        Authorization::requirePermission('suppliers.view');
         $action = $_GET['action'] ?? 'index';
 
-        switch ($action){
+        switch ($action) {
             case 'index':
                 $supplierController->index();
                 break;
@@ -537,9 +522,9 @@ switch ($page) {
                 exit('Action not found.');
         }
         break;
-        
 
-    
+
+
     case 'teams':
         Authorization::requirePermission('teams.view');
 
@@ -597,34 +582,34 @@ switch ($page) {
     case 'users':
         Authorization::requirePermission('users.view');
         $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
-        $id = $id === false ? 0 : (int)$id;
+        $id = $id === false ? 0 : (int) $id;
         switch ($_GET['action'] ?? 'index') {
-            case 'index': 
-                $userController->index(); 
+            case 'index':
+                $userController->index();
                 break;
-            case 'create': 
-                $userController->create(); 
+            case 'create':
+                $userController->create();
                 break;
-            case 'store': 
-                $userController->store(); 
+            case 'store':
+                $userController->store();
                 break;
-            case 'show': 
-                $userController->show($id); 
+            case 'show':
+                $userController->show($id);
                 break;
             case 'edit':
                 $userController->edit($id);
                 break;
-            case 'update': 
-                $userController->update($id); 
+            case 'update':
+                $userController->update($id);
                 break;
 
-            default: 
-            http_response_code(404); 
-            echo 'Unknown users action.';
+            default:
+                http_response_code(404);
+                echo 'Unknown users action.';
         }
         break;
 
-   
+
     case 'reports':
         Authorization::requirePermission('reports.view');
 

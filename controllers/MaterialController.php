@@ -83,7 +83,7 @@ class MaterialController
 
     public function create(): void
     {
-        $this->requireAdmin();
+        Authorization::requirePermission('materials.create');
 
         $suppliers = $this->supplierRepository->findAll();
         $errors = [];
@@ -94,7 +94,7 @@ class MaterialController
 
     public function store(): void
     {
-        $this->requireAdmin();
+        Authorization::requirePermission('materials.create');
         $this->requirePost();
         $this->verifyCsrf();
 
@@ -115,7 +115,7 @@ class MaterialController
 
     public function edit(): void
     {
-        $this->requireAdmin();
+        Authorization::requirePermission('materials.update');
 
         $id = (int) ($_GET['id'] ?? 0);
         $material = $this->materialRepository->findById($id);
@@ -133,7 +133,7 @@ class MaterialController
 
     public function update(): void
     {
-        $this->requireAdmin();
+        Authorization::requirePermission('materials.update');
         $this->requirePost();
         $this->verifyCsrf();
 
@@ -158,7 +158,7 @@ class MaterialController
 
     public function delete(): void
     {
-        $this->requireAdmin();
+        Authorization::requirePermission('materials.delete');
         $this->requirePost();
         $this->verifyCsrf();
 

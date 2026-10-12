@@ -82,13 +82,22 @@ if (!empty($work['assigned_user_name'])) {
             </table>
 
             <?php if ($canEdit): ?>
-                <a
-                    href="/?page=works&amp;action=edit&amp;id=<?= (int) $work['id'] ?>"
-                    class="btn btn-primary">
-                    <?= SessionManager::role() === 'staff'
-                        ? 'Edit Progress'
-                        : 'Edit Work' ?>
-                </a>
+
+                <?php if (SessionManager::role() === 'admin'): ?>
+                    <a
+                        href="/?page=works&amp;action=edit&amp;id=<?= (int) $work['id'] ?>"
+                        class="btn btn-primary">
+                        Edit Work
+                    </a>
+
+                <?php elseif (SessionManager::role() === 'staff'): ?>
+                    <a
+                        href="#update-progress"
+                        class="btn btn-primary">
+                        Edit Progress
+                    </a>
+                <?php endif; ?>
+
             <?php endif; ?>
             
             <?php if ($canRecordMaterialUsage): ?>
@@ -105,7 +114,7 @@ if (!empty($work['assigned_user_name'])) {
 
 
     <?php if ($canUpdateProgress): ?>
-        <div class="card shadow-sm mb-4">
+        <div id="update-progress" class="card shadow-sm mb-4">
             <div class = "card-header">
                 <h5 class="mb-0">Update Work Progress</h5>
             </div>

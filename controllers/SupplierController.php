@@ -41,7 +41,7 @@ class SupplierController
 
     public function create(): void
     {
-        $this->requireAdmin();
+        Authorization::requirePermission('suppliers.create');
 
         $errors = [];
         $old = [];
@@ -51,7 +51,7 @@ class SupplierController
 
     public function store(): void
     {
-        $this->requireAdmin();
+        Authorization::requirePermission('suppliers.create');
         $this->requirePost();
         Csrf::requireValidToken();
 
@@ -73,7 +73,7 @@ class SupplierController
 
     public function edit(): void
     {
-        $this->requireAdmin();
+        Authorization::requirePermission('suppliers.update');
 
         $id = (int) ($_GET['id'] ?? 0);
         $supplier = $this->supplierRepository->findById($id);
@@ -90,7 +90,7 @@ class SupplierController
 
     public function update(): void
     {
-        $this->requireAdmin();
+        Authorization::requirePermission('suppliers.update');
         $this->requirePost();
         Csrf::requireValidToken();
 
@@ -121,7 +121,7 @@ class SupplierController
 
     public function delete(): void
     {
-        $this->requireAdmin();
+        Authorization::requirePermission('suppliers.delete');
         $this->requirePost();
         Csrf::requireValidToken();
 

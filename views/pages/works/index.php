@@ -200,13 +200,22 @@ require __DIR__ . '/../../layouts/sidebar.php';
                                     </a>
                             
                                     <?php if ($canEditWork[(int) $work['id']] ?? false): ?>
-                                        <a
-                                            href="/?page=works&amp;action=edit&amp;id=<?= (int) $work['id'] ?>"
-                                            class="btn btn-sm btn-outline-primary">
-                                            <?= SessionManager::role() === 'staff'
-                                                ? 'Edit Progress'
-                                                : 'Edit' ?>
-                                        </a>
+
+                                        <?php if (SessionManager::role() === 'admin'): ?>
+                                            <a
+                                                href="/?page=works&amp;action=edit&amp;id=<?= (int) $work['id'] ?>"
+                                                class="btn btn-sm btn-outline-primary">
+                                                Edit
+                                            </a>
+
+                                        <?php elseif (SessionManager::role() === 'staff'): ?>
+                                            <a
+                                                href="/?page=works&amp;action=show&amp;id=<?= (int) $work['id'] ?>#update-progress"
+                                                class="btn btn-sm btn-outline-primary">
+                                                Edit Progress
+                                            </a>
+                                        <?php endif; ?>
+
                                     <?php endif; ?>
 
                                     <?php if (Authorization::can('works.delete')): ?>

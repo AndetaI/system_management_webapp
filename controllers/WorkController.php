@@ -149,11 +149,16 @@ public function edit(int $workId): void
 {
     Authorization::requirePermission('works.update');
 
-    Authorization::requireAssignedWork(
+    /*Authorization::requireAssignedWork(
         $workId,
         $this->workAssignmentRepository
-    );
-
+    );*/
+      // Full work editing is reserved for Admin.
+    if (SessionManager::role() !== 'admin') {
+        http_response_code(403);
+        require __DIR__ . '/../views/pages/errors/403.php';
+        exit;
+    }
     $work = $this->workRepository->findById($workId);
 
     if ($work === null) {

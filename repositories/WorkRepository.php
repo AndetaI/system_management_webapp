@@ -145,7 +145,15 @@ class WorkRepository
 
         $params = [];
 
+
         if ($search !== '') {
+
+            $workId = filter_var(
+                $search,
+                FILTER_VALIDATE_INT,
+                ['options' => ['min_range' => 1]]
+            );
+
             $sql .= '
                 AND (
                     w.title LIKE :title_search
@@ -154,8 +162,14 @@ class WorkRepository
                     OR w.status LIKE :status_search
                     OR u.name LIKE :user_search
                     OR t.name LIKE :team_search
-                )
             ';
+
+            if ($workId !== false) {
+                $sql .= ' OR w.id = :work_id_search';
+                $params['work_id_search'] = $workId;
+            }
+
+            $sql .= ' )';
 
             $searchValue = '%' . $search . '%';
 
@@ -166,6 +180,7 @@ class WorkRepository
             $params['user_search'] = $searchValue;
             $params['team_search'] = $searchValue;
         }
+
 
         if ($status !== '') {
             $sql .= ' AND w.status = :status';

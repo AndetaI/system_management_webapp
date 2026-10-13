@@ -204,7 +204,7 @@ public function useMaterial(array $data): array
             'material_id' => $materialId,
             'type' => 'OUT',
             'quantity' => $quantity,
-            'date' => $data['date'] . ' 00:00:00',
+            'date' => date('Y-m-d H:i:s'),
             'description' => 'Material used for work ID '
                 . $workId,
         ]);

@@ -11,18 +11,14 @@ class StockController
         private StockRepository $stockRepository,
         private StockMovementRepository $stockMovementRepository,
         private WorkRepository $workRepository,
-        private WorkAssignmentRepository $workAssignmentRepository
+        private WorkAssignmentRepository $workAssignmentRepository,
+        private AuditLogger $auditLogger
     ) {
     }
 
     private function requireAdmin(): void
     {
-        if (SessionManager::role() !== 'admin') {
-            http_response_code(403);
-            
-            require __DIR__ . '/../views/pages/errors/403.php';
-            exit;
-        }
+        Authorization::requireAdmin();
     }
     
     private function requireMaterialUsagePermission(): void
@@ -146,6 +142,16 @@ class StockController
             require __DIR__ . '/../views/pages/stock/stock-in.php';
             return;
         }
+        $this->auditLogger->record(
+            'STOCK_RECEIVED',
+            'stock_movement',
+            (int) $result['movement_id'],
+            [
+                'material_id' => (int) $_POST['material_id'],
+                'quantity' => (float) $_POST['quantity'],
+                'remaining_stock' => $result['remaining_stock'],
+            ]
+        );
 
         header('Location: /?page=stock');
         exit;
@@ -176,15 +182,18 @@ class StockController
             ['options' => ['min_range' => 1]]
         );
 
+        
         if ($selectedWorkId !== null) {
-            if (
-                $selectedWorkId === false ||
-                !$this->canRecordUsageForWork($selectedWorkId)
-            ) {
-                http_response_code(403);
-                require __DIR__ . '/../views/pages/errors/403.php';
-                exit;
+            if ($selectedWorkId === false) {
+                http_response_code(400);
+                exit('Invalid work ID.');
             }
+
+            Authorization::requireAssignedWork(
+                $selectedWorkId,
+                $this->workAssignmentRepository,
+                'material_usage.create'
+            );
 
             $selectedWork = $this->workRepository
                 ->findById($selectedWorkId);
@@ -213,15 +222,16 @@ class StockController
             FILTER_VALIDATE_INT
         );
 
-        if (
-            $workId === false ||
-            $workId === null ||
-            !$this->canRecordUsageForWork($workId)
-        ) {
-            http_response_code(403);
-            require __DIR__ . '/../views/pages/errors/403.php';
-            exit;
+        if ($workId === false || $workId === null || $workId <= 0) {
+            http_response_code(400);
+            exit('Invalid work ID.');
         }
+
+        Authorization::requireAssignedWork(
+            $workId,
+            $this->workAssignmentRepository,
+            'material_usage.create'
+        );
 
         $result = $this->stockService->useMaterial($_POST);
 
@@ -245,6 +255,19 @@ class StockController
             return;
         }
 
+        $this->auditLogger->record(
+            'MATERIAL_USAGE_RECORDED',
+            'material_usage',
+            (int) $result['usage_id'],
+            [
+                'work_id' => $workId,
+                'material_id' => (int) $_POST['material_id'],
+                'quantity' => (float) $_POST['quantity'],
+                'movement_id' => (int) $result['movement_id'],
+                'remaining_stock' => $result['remaining_stock'],
+            ]
+        );
+        
         header(
             'Location: /?page=works&action=show&id=' . $workId
         );

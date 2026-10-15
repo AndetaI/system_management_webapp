@@ -10,7 +10,9 @@ class WorkController
         private WorkAssignmentRepository $workAssignmentRepository,
         private VillaRepository $villaRepository,
         private UserRepository $userRepository,
-        private TeamRepository $teamRepository
+        private TeamRepository $teamRepository,
+        private AuditLogger $auditLogger,
+        private Logger $logger
     ) {
     }
 
@@ -124,10 +126,31 @@ class WorkController
                     $userId,
                     $teamId
                 );
+                
                 if ($result['success'] === true) {
+                    $newWorkId = (int) $result['id'];
+
+                    $this->auditLogger->record(
+                        'WORK_CREATED',
+                        'work',
+                        $newWorkId
+                    );
+
+                    $this->auditLogger->record(
+                        'WORK_ASSIGNMENT_CREATED',
+                        'work',
+                        $newWorkId,
+                        [
+                            'assignment_type' => $assignmentType,
+                            'assigned_user_id' => $userId,
+                            'assigned_team_id' => $teamId,
+                        ]
+                    );
+
                     header('Location: /?page=works');
                     exit;
                 }
+
                 $errors = $result['errors'] ?? [];
             }
         }
@@ -154,11 +177,7 @@ public function edit(int $workId): void
         $this->workAssignmentRepository
     );*/
       // Full work editing is reserved for Admin.
-    if (SessionManager::role() !== 'admin') {
-        http_response_code(403);
-        require __DIR__ . '/../views/pages/errors/403.php';
-        exit;
-    }
+    Authorization::requireAdmin();
     $work = $this->workRepository->findById($workId);
 
     if ($work === null) {
@@ -252,11 +271,7 @@ public function edit(int $workId): void
     {
         Authorization::requirePermission('works.update');
 
-        // Administrative editing is restricted to Admin.
-        if (SessionManager::role() !== 'admin') {
-            http_response_code(403);
-            exit('Access denied.');
-        }
+        Authorization::requireAdmin();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
@@ -271,6 +286,10 @@ public function edit(int $workId): void
             http_response_code(404);
             exit('Work not found.');
         }
+
+
+        $oldAssignment = $this->workAssignmentRepository
+            ->findByWork($workId);
 
         $assignmentType = (string) ($_POST['assignment_type'] ?? '');
 
@@ -306,7 +325,50 @@ public function edit(int $workId): void
                     $teamId
                 );
 
+                                
                 if ($result['success'] === true) {
+                    $newAssignment = $this->workAssignmentRepository
+                        ->findByWork($workId);
+
+                    $this->auditLogger->record(
+                        'WORK_UPDATED',
+                        'work',
+                        $workId
+                    );
+
+                    $oldUserId = isset($oldAssignment['user_id'])
+                        ? (int) $oldAssignment['user_id']
+                        : null;
+
+                    $oldTeamId = isset($oldAssignment['team_id'])
+                        ? (int) $oldAssignment['team_id']
+                        : null;
+
+                    $newUserId = isset($newAssignment['user_id'])
+                        ? (int) $newAssignment['user_id']
+                        : null;
+
+                    $newTeamId = isset($newAssignment['team_id'])
+                        ? (int) $newAssignment['team_id']
+                        : null;
+
+                    if (
+                        $oldUserId !== $newUserId ||
+                        $oldTeamId !== $newTeamId
+                    ) {
+                        $this->auditLogger->record(
+                            'WORK_ASSIGNMENT_CHANGED',
+                            'work',
+                            $workId,
+                            [
+                                'old_assigned_user_id' => $oldUserId,
+                                'new_assigned_user_id' => $newUserId,
+                                'old_assigned_team_id' => $oldTeamId,
+                                'new_assigned_team_id' => $newTeamId,
+                            ]
+                        );
+                    }
+
                     $_SESSION['flash_success'] =
                         'Work details updated successfully.';
 
@@ -316,11 +378,12 @@ public function edit(int $workId): void
                     exit;
                 }
 
+
                 $errors = $result['errors'] ?? [
                     'work' => 'Unable to update Work.',
                 ];
             } catch (Throwable $e) {
-                error_log('Work administrative update failed.');
+               $this->logger->exception($e);
 
                 $errors['work'] =
                     'Unable to update Work. Please try again.';
@@ -344,39 +407,59 @@ public function edit(int $workId): void
      *
      * Admin only.
      */
+
+    
     public function delete(int $workId): void
     {
-        Authorization::requirePermission(
-            'works.delete'
-        );
+        Authorization::requirePermission('works.delete');
 
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
             http_response_code(405);
-            echo 'Method not allowed.';
-            return;
+            exit('Method not allowed.');
         }
+
         Csrf::requireValidToken();
 
+        // First, perform the database operation.
         try {
             $result = $this->workService->delete($workId);
-
-            if ($result['success'] === true) {
-                $_SESSION['flash_success'] =
-                    'Work deleted successfully.';
-            } else {
-                $_SESSION['flash_error'] =
-                    'Cannot delete this Work because related history or records exist.';
-            }
         } catch (Throwable $e) {
-            error_log('Work deletion failed.');
+            $this->logger->exception($e);
 
             $_SESSION['flash_error'] =
                 'Unable to delete this Work.';
+
+            header('Location: /?page=works');
+            exit;
         }
+
+        if ($result['success'] !== true) {
+            $_SESSION['flash_error'] =
+                'Cannot delete this Work because related history or records exist.';
+
+            header('Location: /?page=works');
+            exit;
+        }
+
+        // The deletion has succeeded.
+        // Audit failure must not be reported as database failure.
+        try {
+            $this->auditLogger->record(
+                'WORK_DELETED',
+                'work',
+                $workId
+            );
+        } catch (Throwable $e) {
+            $this->logger->exception($e);
+        }
+
+        $_SESSION['flash_success'] =
+            'Work deleted successfully.';
 
         header('Location: /?page=works');
         exit;
     }
+
 
     public function updateProgress(): void
 {
@@ -421,12 +504,22 @@ public function edit(int $workId): void
             $actualDate
         );
 
+        $this->auditLogger->record(
+            'WORK_PROGRESS_RECORDED',
+            'work',
+            $workId,
+            [
+                'new_status' => $status,
+            ]
+        );
+
         $_SESSION['flash_success'] =
             'Progress update saved successfully.';
+
     } catch (InvalidArgumentException $e) {
         $_SESSION['flash_error'] = $e->getMessage();
     } catch (Throwable $e) {
-        error_log('Work progress update failed: ' . $e->getMessage());
+       $this->logger->exception($e);
 
         $_SESSION['flash_error'] =
             'Unable to save the progress update.';

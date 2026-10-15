@@ -9,7 +9,7 @@ class Logger
     public function __construct(?string $logFile = null)
     {
         $this->logFile = $logFile
-            ?? __DIR__ . '/../storage/logs/app.log';
+            ?? '/var/log/barkea-resort/app.log';
     }
 
     public function error(
@@ -33,20 +33,19 @@ class Logger
         $this->write('INFO', $message, $context);
     }
 
+
     public function exception(Throwable $exception): void
     {
-        $context = [
-            'exception' => get_class($exception),
-            'file' => $exception->getFile(),
-            'line' => $exception->getLine(),
-            'trace' => $exception->getTraceAsString(),
-        ];
-
         $this->error(
-            $exception->getMessage(),
-            $context
+            'Unhandled application exception',
+            [
+                'exception_type' => get_class($exception),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+            ]
         );
     }
+
 
     private function write(
         string $level,

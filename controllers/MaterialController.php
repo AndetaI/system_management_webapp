@@ -7,16 +7,14 @@ class MaterialController
     public function __construct(
         private MaterialRepository $materialRepository,
         private MaterialService $materialService,
-        private SupplierRepository $supplierRepository
+        private SupplierRepository $supplierRepository,
+        private AuditLogger $auditLogger
     ) {
     }
 
     private function requireAdmin(): void
     {
-        if (SessionManager::role() !== 'admin') {
-            http_response_code(403);
-            exit('403 Forbidden');
-        }
+        Authorization::requireAdmin();
     }
 
     private function requirePost(): void
@@ -109,6 +107,12 @@ class MaterialController
             return;
         }
 
+        $this->auditLogger->record(
+            'MATERIAL_CREATED',
+            'material',
+            (int) $result['id']
+        );
+
         header('Location: /?page=materials');
         exit;
     }
@@ -152,6 +156,12 @@ class MaterialController
             return;
         }
 
+        $this->auditLogger->record(
+            'MATERIAL_UPDATED',
+            'material',
+            $id
+        );
+
         header('Location: /?page=materials');
         exit;
     }
@@ -174,6 +184,12 @@ class MaterialController
                 )
             )));
         }
+
+        $this->auditLogger->record(
+            'MATERIAL_DELETED',
+            'material',
+            $id
+        );
 
         header('Location: /?page=materials');
         exit;

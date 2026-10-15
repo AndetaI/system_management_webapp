@@ -7,7 +7,8 @@ class TeamController
         private TeamRepository $teamRepository,
         private TeamService $teamService,
         private TeamMemberRepository $teamMemberRepository,
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private AuditLogger $auditLogger
     ) {}
 
     public function index(): void
@@ -34,6 +35,11 @@ class TeamController
             require __DIR__ . '/../views/pages/teams/create.php';
             return;
         }
+        $this->auditLogger->record(
+            'TEAM_CREATED',
+            'team',
+            (int) $result['id']
+        );
         $this->redirect('show', (int)$result['id']);
     }
 
@@ -72,6 +78,11 @@ class TeamController
             require __DIR__ . '/../views/pages/teams/edit.php';
             return;
         }
+        $this->auditLogger->record(
+            'TEAM_UPDATED',
+            'team',
+            $id
+        );
         $this->redirect('show', $id);
     }
 
@@ -84,6 +95,11 @@ class TeamController
             $this->renderShowError($id, $result['errors']);
             return;
         }
+        $this->auditLogger->record(
+            'TEAM_DELETED',
+            'team',
+            $id
+        );
         header('Location: /?page=teams', true, 303);
         exit;
     }
@@ -98,6 +114,15 @@ class TeamController
             $this->renderShowError($id, $result['errors']);
             return;
         }
+
+        $this->auditLogger->record(
+            'TEAM_MEMBER_ADDED',
+            'team',
+            $id,
+            [
+                'assigned_user_id' => (int) $userId,
+            ]
+        );
         $this->redirect('show', $id);
     }
 
@@ -111,6 +136,15 @@ class TeamController
             $this->renderShowError($id, $result['errors']);
             return;
         }
+
+        $this->auditLogger->record(
+            'TEAM_MEMBER_REMOVED',
+            'team',
+            $id,
+            [
+                'assigned_user_id' => (int) $userId,
+            ]
+        );
         $this->redirect('show', $id);
     }
 

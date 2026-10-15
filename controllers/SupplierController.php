@@ -6,16 +6,14 @@ class SupplierController
 {
     public function __construct(
         private SupplierRepository $supplierRepository,
-        private MaterialRepository $materialRepository
+        private MaterialRepository $materialRepository,
+        private AuditLogger $auditLogger
     ) {
     }
 
     private function requireAdmin(): void
     {
-        if (SessionManager::role() !== 'admin') {
-            http_response_code(403);
-            exit('403 Forbidden');
-        }
+        Authorization::requireAdmin();
     }
 
     private function requirePost(): void
@@ -63,8 +61,14 @@ class SupplierController
             return;
         }
 
-        $this->supplierRepository->create(
+        $newSupplierId = $this->supplierRepository->create(
             $this->supplierData($_POST)
+        );
+
+        $this->auditLogger->record(
+            'SUPPLIER_CREATED',
+            'supplier',
+            (int) $newSupplierId
         );
 
         header('Location: /?page=suppliers');
@@ -114,6 +118,11 @@ class SupplierController
             $id,
             $this->supplierData($_POST)
         );
+        $this->auditLogger->record(
+            'SUPPLIER_UPDATED',
+            'supplier',
+            $id
+        );
 
         header('Location: /?page=suppliers');
         exit;
@@ -138,6 +147,12 @@ class SupplierController
         }
 
         $this->supplierRepository->delete($id);
+
+        $this->auditLogger->record(
+            'SUPPLIER_DELETED',
+            'supplier',
+            $id
+        );
 
         header('Location: /?page=suppliers');
         exit;

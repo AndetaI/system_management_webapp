@@ -61,6 +61,13 @@ require_once __DIR__ . '/../security/AuthMiddleware.php';
 require_once __DIR__ . '/../security/Authorization.php';
 require_once __DIR__ . '/../security/Csrf.php';
 
+Authorization::setLogger($logger);
+/*Audit logger */
+require_once __DIR__ . '/../util/AuditLogger.php';
+
+$auditLogger = new AuditLogger(
+    new Logger('/var/log/barkea-resort/audit.log')
+);
 /*
  * Controllers.
  */
@@ -101,7 +108,7 @@ $reportController = new ReportController($reportRepository);
 $userRepository = new UserRepository($pdo);
 $authService = new AuthService($userRepository);
 
-$authController = new AuthController($authService);
+$authController = new AuthController($authService, $logger);
 
 $workRepository = new WorkRepository($pdo);
 $villaRepository = new VillaRepository($pdo);
@@ -126,7 +133,8 @@ $userService = new UserService(
 
 $userController = new UserController(
     $userRepository,
-    $userService
+    $userService,
+    $auditLogger
 );
 
 $workService = new WorkService(
@@ -146,7 +154,9 @@ $workController = new WorkController(
     $workAssignmentRepository,
     $villaRepository,
     $userRepository,
-    $teamRepository
+    $teamRepository,
+    $auditLogger,
+    $logger
 );
 
 $villaService = new VillaService(
@@ -157,7 +167,8 @@ $villaService = new VillaService(
 $villaController = new VillaController(
     $villaService,
     $villaRepository,
-    $villaTypologyRepository
+    $villaTypologyRepository,
+    $auditLogger
 );
 
 $materialService = new MaterialService(
@@ -172,12 +183,14 @@ $materialService = new MaterialService(
 $materialController = new MaterialController(
     $materialRepository,
     $materialService,
-    $supplierRepository
+    $supplierRepository,
+    $auditLogger
 );
 
 $supplierController = new SupplierController(
     $supplierRepository,
-    $materialRepository
+    $materialRepository,
+    $auditLogger
 );
 $stockService = new StockService(
     $pdo,
@@ -195,7 +208,8 @@ $stockController = new StockController(
     $stockRepository,
     $stockMovementRepository,
     $workRepository,
-    $workAssignmentRepository
+    $workAssignmentRepository,
+    $auditLogger
 );
 $teamService = new TeamService(
     $teamRepository,
@@ -208,7 +222,8 @@ $teamController = new TeamController(
     $teamRepository,
     $teamService,
     $teamMemberRepository,
-    $userRepository
+    $userRepository,
+    $auditLogger
 );
 /*
  * Determine requested page.

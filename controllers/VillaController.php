@@ -7,7 +7,8 @@ class VillaController
     public function __construct(
         private VillaService $villaService,
         private VillaRepository $villaRepository,
-        private VillaTypologyRepository $villaTypologyRepository
+        private VillaTypologyRepository $villaTypologyRepository,
+        private AuditLogger $auditLogger
     ) {
     }
 
@@ -131,6 +132,11 @@ class VillaController
         $result = $this->villaService->create($_POST);
 
         if ($result['success']) {
+            $this->auditLogger->record(
+                'VILLA_CREATED',
+                'villa',
+                (int) $result['id']
+            );
             header(
                 'Location: /?page=villas&action=show&id='
                 . $result['id']
@@ -188,6 +194,12 @@ class VillaController
         );
 
         if ($result['success']) {
+            $this->auditLogger->record(
+                'VILLA_UPDATED',
+                'villa',
+                $villaId
+            );
+
             header(
                 'Location: /?page=villas&action=show&id='
                 . $villaId
@@ -225,6 +237,11 @@ class VillaController
         $result = $this->villaService->delete($villaId);
 
         if ($result['success']) {
+            $this->auditLogger->record(
+                'VILLA_DELETED',
+                'villa',
+                $villaId
+            );
             header('Location: /?page=villas');
             exit;
         }

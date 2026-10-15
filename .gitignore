@@ -1,7 +1,8 @@
 ```gitignore
 # Environment configuration
 .env
-
+.env.*
+!.env.example
 # Composer dependencies
 /vendor/
 
@@ -11,3 +12,4 @@
 
 # Log files
 *.log
+*.log.*

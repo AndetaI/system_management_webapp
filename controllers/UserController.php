@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 class UserController
 {
-    public function __construct(private UserRepository $users, private UserService $service) {}
+    public function __construct(
+        private UserRepository $users, 
+        private UserService $service,
+        private AuditLogger $auditLogger,
+        ) {}
 
     private function admin(string $permission): void
     {
@@ -57,7 +61,16 @@ class UserController
         $this->admin('users.create'); $this->post();
         $result = $this->service->create($_POST);
         if ($result['success']) {
-            header('Location: /?page=users&action=show&id=' . (int) $result['id']); exit;
+            $newUserId = (int) $result['id'];
+
+            $this->auditLogger->record(
+                'USER_CREATED',
+                'user',
+                $newUserId
+            );
+
+            header('Location: /?page=users&action=show&id=' . $newUserId);
+            exit;
         }
         $old = $_POST; unset($old['password']);
         $errors = $result['errors'];
@@ -84,16 +97,70 @@ class UserController
         $this->admin('users.update'); $this->post();
         $user = $this->getUser($id);
         $actorId = SessionManager::userId();
-        if ($actorId !== null && $id === $actorId && ($_POST['role'] ?? '') !== 'admin') {
-            http_response_code(403); exit('You cannot remove your own Admin role.');
+        if (
+            $actorId !== null &&
+            $id === $actorId &&
+            ($_POST['role'] ?? '') !== 'admin'
+        ) {
+            Authorization::denyAction(
+                'self_admin_role_removal_blocked',
+                'users.update'
+            );
         }
-        if ($actorId !== null && $id === $actorId && ($_POST['status'] ?? '') !== 'active') {
-            http_response_code(403); exit('You cannot deactivate your own account.');
+        if (
+            $actorId !== null &&
+            $id === $actorId &&
+            ($_POST['status'] ?? '') !== 'active'
+        ) {
+            Authorization::denyAction(
+                'self_account_deactivation_blocked',
+                'users.update'
+            );
         }
+        
         $result = $this->service->update($id, $_POST);
+
         if ($result['success']) {
-            header('Location: /?page=users&action=show&id=' . $id); exit;
+
+            // Retrieve the persisted user after the update.
+            $updatedUser = $this->getUser($id);
+
+            $this->auditLogger->record(
+                'USER_UPDATED',
+                'user',
+                $id
+            );
+
+            // Record role changes separately.
+            if ($user['role'] !== $updatedUser['role']) {
+                $this->auditLogger->record(
+                    'USER_ROLE_CHANGED',
+                    'user',
+                    $id,
+                    [
+                        'old_role' => $user['role'],
+                        'new_role' => $updatedUser['role'],
+                    ]
+                );
+            }
+
+            // Record account status changes separately.
+            if ($user['status'] !== $updatedUser['status']) {
+                $this->auditLogger->record(
+                    'USER_STATUS_CHANGED',
+                    'user',
+                    $id,
+                    [
+                        'old_status' => $user['status'],
+                        'new_status' => $updatedUser['status'],
+                    ]
+                );
+            }
+
+            header('Location: /?page=users&action=show&id=' . $id);
+            exit;
         }
+
         $old = $_POST; unset($old['password']);
         $errors = $result['errors'];
         require __DIR__ . '/../views/pages/users/edit.php';

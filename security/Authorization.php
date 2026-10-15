@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 class Authorization
 {
+    private static ?Logger $logger = null;
+    public static function setLogger(Logger $logger): void{
+        self::$logger = $logger;
+    }
     private static ?array $roles = null;
 
     /**
@@ -18,6 +22,25 @@ class Authorization
 
         return self::$roles;
     }
+
+    /*
+    It preserves the existing Admin-only policy and records the denial
+    */
+    public static function requireAdmin(): void
+    {
+        if (!SessionManager::isAuthenticated()) {
+            header('Location: /?page=login');
+            exit;
+        }
+
+        if (SessionManager::role() !== 'admin') {
+            self::deny(
+                'admin_only',
+                'admin.access'
+            );
+        }
+    }
+
 
     /**
      * Check whether a specific role
@@ -77,7 +100,10 @@ class Authorization
         }
 
         if (!self::can($permission)) {
-            self::deny();
+            self::deny(
+                'permission_denied',
+                $permission
+            );
         }
     }
 
@@ -98,10 +124,11 @@ class Authorization
      */
     public static function requireAssignedWork(
         int $workId,
-        WorkAssignmentRepository $repository
+        WorkAssignmentRepository $repository,
+        string $permission = 'works.update'
     ): void {
         self::requirePermission(
-            'works.update'
+            $permission
         );
 
         /*
@@ -121,20 +148,41 @@ class Authorization
                 $userId
             )
         ) {
-            self::deny();
+            self::deny('work_not_assigned', $permission);
         }
     }
 
     /**
      * Deny an authenticated request safely.
      */
-    private static function deny(): void
+    private static function deny(
+    string $reason,    
+    string $permission
+    ): void
     {
+        if(self::$logger !== null) {
+            self::$logger->warning(
+                'AUTHORIZATION_DENIED',
+                [
+                    'user_id'=>SessionManager::userId(),
+                    'role'=>SessionManager::role(),
+                    'reason'=>$reason,
+                    'permission'=>$permission
+                ]
+            );
+        }
+        
         http_response_code(403);
 
         require __DIR__
             . '/../views/pages/errors/403.php';
 
         exit;
+    }
+    public static function denyAction(
+        string $reason,
+        string $permission
+    ): void {
+        self::deny($reason, $permission);
     }
 }

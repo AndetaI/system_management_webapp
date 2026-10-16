@@ -5,7 +5,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
 ?>
 <main class="main-content flex-grow-1 p-4">
 <h1>Create Team</h1>
-<form method="post" action="/?page=teams&amp;action=store" class="card p-4" style="max-width:720px">
+<form method="post" action="/?page=teams&amp;action=store" class="card p-4" class="card p-4 team-form">
 <?= Csrf::field() ?>
 <?php foreach ($errors as $messages): foreach ((array)$messages as $message): ?>
 <div class="alert alert-danger"><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></div>

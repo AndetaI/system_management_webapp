@@ -14,10 +14,7 @@ declare(strict_types=1);
 
     <title>Access Denied | Barkea Resort</title>
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
 </head>
 
 <body class="bg-light">

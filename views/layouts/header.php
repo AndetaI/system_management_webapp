@@ -51,7 +51,7 @@
 
                     <span class="d-inline-flex align-items-center justify-content-center
                                 rounded-circle bg-secondary"
-                        style="width: 36px; height: 36px;"
+                        class="user-avatar"
                         aria-hidden="true">
                         &#128100;
                     </span>

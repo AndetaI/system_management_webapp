@@ -18,10 +18,21 @@ class SessionManager
                 && (int) $_SERVER['SERVER_PORT'] === 443)
         );
 
+
+        if (!$isHttps) {
+            throw new RuntimeException(
+                'Secure sessions require HTTPS.'
+            );
+        }
+
+        ini_set('session.use_strict_mode', '1');#rejects uninitialized session identifiers, helping mitigate session fixation.
+        ini_set('session.use_only_cookies', '1');#ensures session cookies are restricted to HTTPS.
+        ini_set('session.use_trans_sid', '0');#prevents session identifiers being accepted through URL parameters.
+       
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
-            'secure' => $isHttps,
+            'secure' => true,
             'httponly' => true,
             'samesite' => 'Lax',
         ]);

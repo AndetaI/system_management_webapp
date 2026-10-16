@@ -162,7 +162,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
                 <strong><?= $completionPercentage ?>%</strong>
             </div>
 
-            <div class="progress" style="height: 22px;">
+            <div class="progress dashboard-progress">
                 <div
                     class="progress-bar bg-success"
                     role="progressbar"

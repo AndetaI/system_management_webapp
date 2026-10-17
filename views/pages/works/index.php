@@ -223,7 +223,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
                                             method="POST"
                                             action="/?page=works&amp;action=delete&amp;id=<?= (int) $work['id'] ?>"
                                             class="d-inline"
-                                            onsubmit="return confirm('Delete this work?');"
+                                            data-confirm="Delete this work?"
                                         >
                                             <?= Csrf::field() ?>
 

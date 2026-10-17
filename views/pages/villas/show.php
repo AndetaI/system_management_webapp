@@ -176,7 +176,7 @@ $statusLabel = ucfirst(
                             method="POST"
                             action="/?page=villas&action=delete&id=<?= (int) $villa['id'] ?>"
                             class="d-inline"
-                            onsubmit="return confirm('Are you sure you want to delete this villa?');"
+                            data-confirm="Are you sure you want to delete this villa?"
                         >
                             <?= Csrf::field() ?>
 

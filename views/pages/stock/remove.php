@@ -164,44 +164,6 @@ require __DIR__ . '/../../layouts/sidebar.php';
     </div>
 </main>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const villaSelect = document.getElementById('villa_id');
-    const workSelect = document.getElementById('work_id');
-
-    function filterWorks() {
-        const selectedVilla = villaSelect.value;
-
-        Array.from(workSelect.options).forEach(function (option) {
-            if (!option.value) {
-                return;
-            }
-
-            const matchesVilla =
-                option.dataset.villaId === selectedVilla;
-
-            option.hidden = !matchesVilla;
-            option.disabled = !matchesVilla;
-        });
-
-        const selectedOption = workSelect.selectedOptions[0];
-
-        if (
-            !selectedOption ||
-            selectedOption.disabled
-        ) {
-            workSelect.value = '';
-        }
-    }
-
-    villaSelect.addEventListener('change', function () {
-        workSelect.value = '';
-        filterWorks();
-    });
-
-    filterWorks();
-});
-</script>
 
 <?php
 require __DIR__ . '/../../layouts/footer.php';

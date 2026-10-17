@@ -51,7 +51,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
 
                     <form method="POST"
                           action="/?page=materials&amp;action=delete&amp;id=<?= (int) $material['id'] ?>"
-                          onsubmit="return confirm('Delete this material?');">
+                          data-confirm="Delete this material?">
                         <?= Csrf::field() ?>
                         <button type="submit" class="btn btn-danger">
                             Delete

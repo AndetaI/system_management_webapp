@@ -22,7 +22,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
 <td><?= htmlspecialchars($member['role'], ENT_QUOTES, 'UTF-8') ?></td>
 <td><?= htmlspecialchars($member['status'], ENT_QUOTES, 'UTF-8') ?></td>
 <td><?php if (Authorization::can('teams.update')): ?>
-<form method="post" action="/?page=teams&amp;action=remove-member&amp;id=<?= (int)$team['id'] ?>" onsubmit="return confirm('Remove this member from the team?');">
+<form method="post" action="/?page=teams&amp;action=remove-member&amp;id=<?= (int)$team['id'] ?>" data-confirm="Remove this member from the team?">
 <?= Csrf::field() ?><input type="hidden" name="user_id" value="<?= (int)$member['id'] ?>">
 <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
 </form><?php endif; ?></td>
@@ -42,7 +42,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
 <a class="btn btn-outline-primary" href="/?page=teams&amp;action=edit&amp;id=<?= (int)$team['id'] ?>">Edit Team</a>
 <?php endif; ?>
 <?php if (Authorization::can('teams.delete')): ?>
-<form method="post" action="/?page=teams&amp;action=delete&amp;id=<?= (int)$team['id'] ?>" class="d-inline" onsubmit="return confirm('Delete this team?');">
+<form method="post" action="/?page=teams&amp;action=delete&amp;id=<?= (int)$team['id'] ?>" class="d-inline" data-confirm="Delete this team?">
 <?= Csrf::field() ?><button type="submit" class="btn btn-outline-danger">Delete Team</button>
 </form>
 <?php endif; ?>

@@ -149,31 +149,6 @@ $old = static fn (string $key): string =>
     </form>
 </main>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const typeSelect = document.getElementById('assignment_type');
-    const idSelect = document.getElementById('assignment_id');
 
-    function updateOptions() {
-        const type = typeSelect.value;
-
-        for (const option of idSelect.options) {
-            if (!option.value) continue;
-
-            option.hidden = option.dataset.type !== type;
-            option.disabled = option.dataset.type !== type;
-        }
-
-        const selected = idSelect.selectedOptions[0];
-
-        if (selected && selected.disabled) {
-            idSelect.value = '';
-        }
-    }
-
-    typeSelect.addEventListener('change', updateOptions);
-    updateOptions();
-});
-</script>
 
 <?php require __DIR__ . '/../../layouts/footer.php'; ?>

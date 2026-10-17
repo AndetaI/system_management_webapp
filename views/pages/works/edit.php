@@ -458,48 +458,6 @@ $statuses = [
 
 </main>
 
-<?php if ($isAdmin): ?>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const typeSelect = document.getElementById('assignment_type');
-    const idSelect = document.getElementById('assignment_id');
-
-    if (!typeSelect || !idSelect) {
-        return;
-    }
-
-    function updateAssignmentOptions() {
-        const selectedType = typeSelect.value;
-
-        for (const option of idSelect.options) {
-            if (!option.value) {
-                continue;
-            }
-
-            const matches = option.dataset.type === selectedType;
-
-            option.hidden = !matches;
-            option.disabled = !matches;
-        }
-
-        const selectedOption = idSelect.selectedOptions[0];
-
-        if (selectedOption && selectedOption.disabled) {
-            idSelect.value = '';
-        }
-    }
-
-    typeSelect.addEventListener(
-        'change',
-        updateAssignmentOptions
-    );
-
-    updateAssignmentOptions();
-});
-</script>
-
-<?php endif; ?>
 
 <?php
 require __DIR__ . '/../../layouts/footer.php';

@@ -162,22 +162,29 @@ require __DIR__ . '/../../layouts/sidebar.php';
                 <strong><?= $completionPercentage ?>%</strong>
             </div>
 
-            <div class="progress dashboard-progress">
-                <div
-                    class="progress-bar bg-success"
-                    role="progressbar"
-                    style="width: <?= $completionPercentage ?>%;"
-                    aria-valuenow="<?= $completionPercentage ?>"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
+            <?php
+            $completionPercentage = max(
+                0,
+                min(100, (float) $completionPercentage)
+            );
+            ?>
+
+            <div class="dashboard-progress-container">
+                <progress
+                    class="dashboard-progress-meter"
+                    value="<?= htmlspecialchars((string) $completionPercentage, ENT_QUOTES, 'UTF-8') ?>"
+                    max="100"
+                    aria-label="Overall work completion"
                 >
-                    <?= $completionPercentage ?>%
-                </div>
+                    <?= htmlspecialchars((string) $completionPercentage, ENT_QUOTES, 'UTF-8') ?>%
+                </progress>
+
+                
             </div>
 
         </div>
-    </div>
 
+    </div> 
 
     <!-- Recent works -->
 

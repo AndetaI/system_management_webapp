@@ -121,7 +121,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
 
             <form method="POST"
                   action="/?page=suppliers&amp;action=delete&amp;id=<?= $id ?>"
-                  onsubmit="return confirm('Delete this supplier?');">
+                  data-confirm="Delete this supplier?">
 
                 <?= Csrf::field() ?>
                 

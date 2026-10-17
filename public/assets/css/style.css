@@ -233,7 +233,7 @@ body {
 
     .table {
         font-size: 0.9rem;
-    }
+    }}
 /* Compact dashboard cards on desktop */
 @media (min-width: 992px) {
     .dashboard-stats .card-body {
@@ -264,5 +264,40 @@ body {
     max-width: 720px;
 }
 
+.dashboard-progress-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
 
+.dashboard-progress-container .dashboard-progress-meter {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    height: 22px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.dashboard-progress-meter::-webkit-progress-bar {
+    background-color: #e9ecef;
+}
+
+.dashboard-progress-meter::-webkit-progress-value {
+    background-color: #198754;
+}
+
+.dashboard-progress-meter::-moz-progress-bar {
+    background-color: #198754;
+}
+
+.dashboard-progress-label {
+    flex-shrink: 0;
+    min-width: 42px;
+    font-weight: 600;
 }

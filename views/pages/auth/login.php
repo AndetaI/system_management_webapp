@@ -9,7 +9,7 @@
     <!-- Bootstrap -->
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
 
-    <!-- Our CSS -->
+    <!-- Personalised CSS -->
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 

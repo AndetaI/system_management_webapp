@@ -610,8 +610,7 @@ class WorkService
                 ];
             }
 
-            // Never trust status submitted through the Admin edit form.
-            // Status changes must use recordProgress().
+        
             $data['status'] = $current['status'];
 
             $assignmentResult = $this->changeAssignment(

@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             /* 
-             * this search request will later be sent to PHP.
+             * 
              * innerHTML is not used with user input.
              */
             console.log("Search requested:", searchValue);

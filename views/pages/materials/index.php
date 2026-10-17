@@ -114,6 +114,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
                 <table class="table table-hover align-middle">
                     <thead>
                         <tr>
+                            <th>Id</th>
                             <th>Material</th>
                             <th>Category</th>
                             <th>Unit</th>
@@ -126,6 +127,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
                     <tbody>
                         <?php foreach ($materials as $material): ?>
                             <tr>
+                                <td><?= $escape($material['id']) ?></td>
                                 <td><?= $escape($material['name']) ?></td>
                                 <td><?= $escape($material['category']) ?></td>
                                 <td><?= $escape($material['unit']) ?></td>

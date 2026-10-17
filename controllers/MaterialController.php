@@ -12,10 +12,6 @@ class MaterialController
     ) {
     }
 
-    private function requireAdmin(): void
-    {
-        Authorization::requireAdmin();
-    }
 
     private function requirePost(): void
     {

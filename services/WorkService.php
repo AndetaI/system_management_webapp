@@ -655,223 +655,223 @@ class WorkService
         return $value;
     }
 
-public function recordProgress(
-    int $workId,
-    int $authorId,
-    string $newStatus,
-    string $note,
-    ?string $actualDate
-): void {
-    if ($workId <= 0 || $authorId <= 0) {
-        throw new InvalidArgumentException('Invalid Work or User.');
-    }
-
-    if (!in_array(
-        $newStatus,
-        ['planned', 'in_progress', 'completed'],
-        true
-    )) {
-        throw new InvalidArgumentException('Invalid Work status.');
-    }
-
-    $note = trim($note);
-
-    if ($note === '' || mb_strlen($note) > 2000) {
-        throw new InvalidArgumentException(
-            'Progress note is required (maximum 2000 characters).'
-        );
-    }
-
-    $actualDate = trim((string) $actualDate);
-    $actualDate = $actualDate === '' ? null : $actualDate;
-
-    if ($actualDate !== null) {
-        $date = DateTimeImmutable::createFromFormat(
-            '!Y-m-d',
-            $actualDate
-        );
-
-        if (
-            $date === false
-            || $date->format('Y-m-d') !== $actualDate
-        ) {
-            throw new InvalidArgumentException(
-                'Invalid actual completion date.'
-            );
-        }
-    }
-
-    if ($newStatus === 'completed' && $actualDate === null) {
-        throw new InvalidArgumentException(
-            'Actual completion date is required for completed Works.'
-        );
-    }
-
-    if ($this->pdo->inTransaction()) {
-        throw new RuntimeException(
-            'Unexpected active database transaction.'
-        );
-    }
-
-    $this->pdo->beginTransaction();
-
-    try {
-        $stmt = $this->pdo->prepare(
-            'SELECT status, actual_date
-             FROM works
-             WHERE id = :id
-             FOR UPDATE'
-        );
-
-        $stmt->execute(['id' => $workId]);
-
-        $work = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$work) {
-            throw new InvalidArgumentException('Work not found.');
-        }
-
-        // Recheck the current authenticated user's permission.
-        if (
-            SessionManager::userId() !== $authorId
-            || !Authorization::can('works.update')
-        ) {
-            throw new RuntimeException('Unauthorized progress update.');
-        }
-
-        if (
-            SessionManager::role() === 'staff'
-            && !$this->assignmentRepository->isWorkAssignedToUser(
-                $workId,
-                $authorId
-            )
-        ) {
-            throw new RuntimeException('Unauthorized Work assignment.');
+    public function recordProgress(
+        int $workId,
+        int $authorId,
+        string $newStatus,
+        string $note,
+        ?string $actualDate
+    ): void {
+        if ($workId <= 0 || $authorId <= 0) {
+            throw new InvalidArgumentException('Invalid Work or User.');
         }
 
         if (!in_array(
-            SessionManager::role(),
-            ['admin', 'staff'],
+            $newStatus,
+            ['planned', 'in_progress', 'completed'],
             true
         )) {
-            throw new RuntimeException('Unauthorized role.');
+            throw new InvalidArgumentException('Invalid Work status.');
         }
 
-        $oldStatus = (string) $work['status'];
+        $note = trim($note);
 
-        $update = $this->pdo->prepare(
-            'UPDATE works
-             SET status = :status,
-                 actual_date = :actual_date
-             WHERE id = :id'
-        );
+        if ($note === '' || mb_strlen($note) > 2000) {
+            throw new InvalidArgumentException(
+                'Progress note is required (maximum 2000 characters).'
+            );
+        }
 
-        $update->execute([
-            'status' => $newStatus,
-            'actual_date' => $actualDate,
-            'id' => $workId,
-        ]);
+        $actualDate = trim((string) $actualDate);
+        $actualDate = $actualDate === '' ? null : $actualDate;
 
-        $this->workProgressRepository->create(
-            $workId,
-            $authorId,
-            $oldStatus,
-            $newStatus,
-            $note
-        );
+        if ($actualDate !== null) {
+            $date = DateTimeImmutable::createFromFormat(
+                '!Y-m-d',
+                $actualDate
+            );
 
-        $this->pdo->commit();
-    } catch (Throwable $e) {
+            if (
+                $date === false
+                || $date->format('Y-m-d') !== $actualDate
+            ) {
+                throw new InvalidArgumentException(
+                    'Invalid actual completion date.'
+                );
+            }
+        }
+
+        if ($newStatus === 'completed' && $actualDate === null) {
+            throw new InvalidArgumentException(
+                'Actual completion date is required for completed Works.'
+            );
+        }
+
         if ($this->pdo->inTransaction()) {
-            $this->pdo->rollBack();
+            throw new RuntimeException(
+                'Unexpected active database transaction.'
+            );
         }
 
-        throw $e;
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare(
+                'SELECT status, actual_date
+                FROM works
+                WHERE id = :id
+                FOR UPDATE'
+            );
+
+            $stmt->execute(['id' => $workId]);
+
+            $work = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$work) {
+                throw new InvalidArgumentException('Work not found.');
+            }
+
+            // Recheck the current authenticated user's permission.
+            if (
+                SessionManager::userId() !== $authorId
+                || !Authorization::can('works.update')
+            ) {
+                throw new RuntimeException('Unauthorized progress update.');
+            }
+
+            if (
+                SessionManager::role() === 'staff'
+                && !$this->assignmentRepository->isWorkAssignedToUser(
+                    $workId,
+                    $authorId
+                )
+            ) {
+                throw new RuntimeException('Unauthorized Work assignment.');
+            }
+
+            if (!in_array(
+                SessionManager::role(),
+                ['admin', 'staff'],
+                true
+            )) {
+                throw new RuntimeException('Unauthorized role.');
+            }
+
+            $oldStatus = (string) $work['status'];
+
+            $update = $this->pdo->prepare(
+                'UPDATE works
+                SET status = :status,
+                    actual_date = :actual_date
+                WHERE id = :id'
+            );
+
+            $update->execute([
+                'status' => $newStatus,
+                'actual_date' => $actualDate,
+                'id' => $workId,
+            ]);
+
+            $this->workProgressRepository->create(
+                $workId,
+                $authorId,
+                $oldStatus,
+                $newStatus,
+                $note
+            );
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $e;
+        }
     }
-}
-public function getProgressHistory(int $workId): array
-{
-    if ($workId <= 0) {
-        throw new InvalidArgumentException('Invalid Work ID.');
+    public function getProgressHistory(int $workId): array
+    {
+        if ($workId <= 0) {
+            throw new InvalidArgumentException('Invalid Work ID.');
+        }
+
+        return $this->workProgressRepository->findByWorkId($workId);
     }
 
-    return $this->workProgressRepository->findByWorkId($workId);
-}
+        public function delete(int $workId): array
+    {
+        $validator = new Validator();
 
-    public function delete(int $workId): array
-{
-    $validator = new Validator();
+        if ($workId <= 0) {
+            $validator->addError(
+                'work_id',
+                'Invalid work.'
+            );
+        }
 
-    if ($workId <= 0) {
-        $validator->addError(
-            'work_id',
-            'Invalid work.'
-        );
-    }
+        if ($validator->fails()) {
+            return [
+                'success' => false,
+                'errors' => $validator->errors(),
+            ];
+        }
 
-    if ($validator->fails()) {
+        /*
+        * Work must exist.
+        */
+        if (
+            $this->workRepository->findById($workId)
+            === null
+        ) {
+            $validator->addError(
+                'work_id',
+                'Work not found.'
+            );
+
+            return [
+                'success' => false,
+                'errors' => $validator->errors(),
+            ];
+        }
+
+        /*
+        * Preserve material usage history.
+        */
+        if (
+            $this->materialUsageRepository
+                ->existsByWorkId($workId)
+        ) {
+            $validator->addError(
+                'work_id',
+                'Cannot delete this work because material usage history exists.'
+            );
+
+            return [
+                'success' => false,
+                'errors' => $validator->errors(),
+            ];
+        }
+        $history = $this->workProgressRepository->findByWorkId($workId);
+
+        if (!empty($history)) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'work' => 'Cannot delete this Work because progress history exists.'
+                ],
+            ];
+        }
+
+        /*
+        * Delete the work.
+        *
+        * Any work_assignment belonging to this work
+        * is removed automatically by ON DELETE CASCADE.
+        */
+        $this->workRepository->delete($workId);
+
         return [
-            'success' => false,
-            'errors' => $validator->errors(),
+            'success' => true,
         ];
     }
-
-    /*
-     * Work must exist.
-     */
-    if (
-        $this->workRepository->findById($workId)
-        === null
-    ) {
-        $validator->addError(
-            'work_id',
-            'Work not found.'
-        );
-
-        return [
-            'success' => false,
-            'errors' => $validator->errors(),
-        ];
-    }
-
-    /*
-     * Preserve material usage history.
-     */
-    if (
-        $this->materialUsageRepository
-            ->existsByWorkId($workId)
-    ) {
-        $validator->addError(
-            'work_id',
-            'Cannot delete this work because material usage history exists.'
-        );
-
-        return [
-            'success' => false,
-            'errors' => $validator->errors(),
-        ];
-    }
-    $history = $this->workProgressRepository->findByWorkId($workId);
-
-    if (!empty($history)) {
-        return [
-            'success' => false,
-            'errors' => [
-                'work' => 'Cannot delete this Work because progress history exists.'
-            ],
-        ];
-    }
-
-    /*
-     * Delete the work.
-     *
-     * Any work_assignment belonging to this work
-     * is removed automatically by ON DELETE CASCADE.
-     */
-    $this->workRepository->delete($workId);
-
-    return [
-        'success' => true,
-    ];
-}
 }

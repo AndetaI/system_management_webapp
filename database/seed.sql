@@ -8,7 +8,7 @@
 --   34 villas
 
 
---villa groups
+-- villa groups
 
 INSERT INTO villa_groups (name, description)
 VALUES
@@ -17,7 +17,7 @@ VALUES
     ('C', 'Barkea Resort Villa Group C'),
     ('D', 'Barkea Resort Villa Group D');
 
---villa typologies
+-- villa typologies
 
 INSERT INTO villa_typologies
     (group_id, name, description, floors, area)

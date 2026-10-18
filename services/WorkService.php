@@ -184,14 +184,20 @@ class WorkService
             ];
         }
 
-        if (
-            $userId !== null &&
-            $this->userRepository->findById($userId) === null
-        ) {
-            $validator->addError(
-                'user_id',
-                'The selected user does not exist.'
-            );
+        if ($userId !== null) {
+            $user = $this->userRepository->findById($userId);
+
+            if ($user === null) {
+                $validator->addError(
+                    'user_id',
+                    'The selected user does not exist.'
+                );
+            } elseif (($user['status'] ?? null) !== 'active') {
+                $validator->addError(
+                    'user_id',
+                    'Cannot assign work to an inactive user.'
+                );
+            }
         }
 
         if (

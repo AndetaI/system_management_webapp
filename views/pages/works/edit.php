@@ -51,8 +51,10 @@ $statuses = [
             <strong>Please correct the following:</strong>
 
             <ul class="mb-0 mt-2">
-                <?php foreach ($errors as $message): ?>
-                    <li><?= $escape($message) ?></li>
+                <?php foreach ($errors as $messages): ?>
+                    <?php foreach ((array) $messages as $message): ?>
+                        <li><?= $escape($message) ?></li>
+                    <?php endforeach; ?>
                 <?php endforeach; ?>
             </ul>
         </div>

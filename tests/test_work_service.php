@@ -18,6 +18,7 @@ require_once __DIR__ . '/../repositories/MaterialUsageRepository.php';
 require_once __DIR__ . '/../repositories/SupplierRepository.php';
 require_once __DIR__ . '/../repositories/MaterialRepository.php';
 require_once __DIR__ . '/../services/WorkService.php';
+require_once __DIR__ . '/../repositories/WorkProgressRepository.php';
 
 try {
     $pdo = Database::getConnection();
@@ -32,6 +33,8 @@ try {
     $materialUsageRepository = new MaterialUsageRepository($pdo);
     $supplierRepository = new SupplierRepository($pdo);
     $materialRepository = new MaterialRepository($pdo);
+    $materialUsageRepository = new MaterialUsageRepository($pdo);
+    $workProgressRepository = new WorkProgressRepository($pdo);
     $workService = new WorkService(
         $pdo,
         $workRepository,
@@ -39,7 +42,8 @@ try {
         $assignmentRepository,
         $userRepository,
         $teamRepository,
-        $materialUsageRepository
+        $materialUsageRepository,
+        $workProgressRepository
     );
 
     $suffix = (string) time();

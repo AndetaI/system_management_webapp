@@ -23,7 +23,11 @@ require __DIR__ . '/../../layouts/sidebar.php';
             <td><a class="btn btn-sm btn-outline-primary" href="/?page=teams&amp;action=show&amp;id=<?= (int)$team['id'] ?>">View</a>
               <?php if (Authorization::can('teams.update')): ?>
                 <a class="btn btn-sm btn-outline-secondary" href="/?page=teams&amp;action=edit&amp;id=<?= (int)$team['id'] ?>">Edit</a>
+                <form method="post" action="/?page=teams&amp;action=delete&amp;id=<?= (int)$team['id'] ?>" class="d-inline" data-confirm="Delete this team?">
+                  <?= Csrf::field() ?><button type="submit" class="btn btn-outline-danger">Delete Team</button>
+                </form>
               <?php endif; ?>
+              
             </td>
           </tr>
         <?php endforeach; ?>

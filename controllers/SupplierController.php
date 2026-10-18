@@ -7,7 +7,8 @@ class SupplierController
     public function __construct(
         private SupplierRepository $supplierRepository,
         private MaterialRepository $materialRepository,
-        private AuditLogger $auditLogger
+        private AuditLogger $auditLogger,
+        private SupplierService $supplierService
     ) {
     }
 
@@ -30,6 +31,23 @@ class SupplierController
         }
 
         require __DIR__ . '/../views/pages/suppliers/index.php';
+    }
+
+    public function show(): void
+    {
+        Authorization::requirePermission('suppliers.view');
+
+        $id = (int) ($_GET['id'] ?? 0);
+        $supplier = $this->supplierRepository->findById($id);
+
+        if ($supplier === null) {
+            http_response_code(404);
+            exit('Supplier not found.');
+        }
+
+        $errors = [];
+
+        require __DIR__ . '/../views/pages/suppliers/show.php';
     }
 
     public function create(): void
@@ -131,28 +149,30 @@ class SupplierController
 
         $id = (int) ($_GET['id'] ?? 0);
 
-        if ($this->supplierRepository->findById($id) === null) {
+        $result = $this->supplierService->delete($id);
+
+        if ($result['success']) {
+            $this->auditLogger->record(
+                'SUPPLIER_DELETED',
+                'supplier',
+                $id
+            );
+
+            header('Location: /?page=suppliers');
+            exit;
+        }
+
+        $supplier = $this->supplierRepository->findById($id);
+
+        if ($supplier === null) {
             http_response_code(404);
             exit('Supplier not found.');
         }
 
-        if ($this->materialRepository->existsBySupplierId($id)) {
-            http_response_code(400);
-            exit('Cannot delete supplier because materials reference it.');
-        }
+        $errors = $result['errors'];
 
-        $this->supplierRepository->delete($id);
-
-        $this->auditLogger->record(
-            'SUPPLIER_DELETED',
-            'supplier',
-            $id
-        );
-
-        header('Location: /?page=suppliers');
-        exit;
+        require __DIR__ . '/../views/pages/suppliers/show.php';
     }
-
     private function validateSupplier(array $data): array
     {
         $errors = [];

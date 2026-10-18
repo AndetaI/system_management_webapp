@@ -15,7 +15,7 @@ require __DIR__ . '/../../layouts/sidebar.php';
 ?>
 
 <main class="main-content flex-grow-1 p-4">
-
+    
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1>Suppliers</h1>
@@ -100,6 +100,12 @@ require __DIR__ . '/../../layouts/sidebar.php';
 
                                     <td>
                                         <?php if ($isAdmin): ?>
+                                            <a
+                                                href="/?page=suppliers&amp;action=show&amp;id=<?= (int) $supplier['id'] ?>"
+                                                class="btn btn-sm btn-outline-primary"
+                                            >
+                                                View
+                                            </a>
                                             <a
                                                 class="btn btn-sm btn-outline-primary"
                                                 href="/?page=suppliers&amp;action=edit&amp;id=<?= (int) $supplier['id'] ?>"

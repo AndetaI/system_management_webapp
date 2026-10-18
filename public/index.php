@@ -53,6 +53,7 @@ require_once __DIR__ . '/../services/MaterialService.php';
 require_once __DIR__ . '/../services/StockService.php';
 require_once __DIR__ . '/../services/TeamService.php';
 require_once __DIR__ . '/../services/UserService.php';
+require_once __DIR__ . '/../services/SupplierService.php';
 /*
  * Security.
  */
@@ -187,10 +188,16 @@ $materialController = new MaterialController(
     $auditLogger
 );
 
+$supplierService = new SupplierService(
+    $supplierRepository,
+    $materialRepository
+);
+
 $supplierController = new SupplierController(
     $supplierRepository,
     $materialRepository,
-    $auditLogger
+    $auditLogger,
+    $supplierService
 );
 $stockService = new StockService(
     $pdo,
@@ -530,6 +537,9 @@ switch ($page) {
 
             case 'delete':
                 $supplierController->delete();
+                break;
+            case 'show':
+                $supplierController->show();
                 break;
 
             default:

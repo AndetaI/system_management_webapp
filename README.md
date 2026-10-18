@@ -201,46 +201,6 @@ rm scripts/create_admin.php
 
 The original setup script remains available in the project distribution for future fresh installations. Do not run it against an existing production database to recreate administrator accounts.
 
-### 2. Execute the Script
-
-From the project root:
-
-```bash
-php tests/create_admin.php
-```
-
-Follow the terminal prompts to create the administrator account.
-
-### 3. Verify the Administrator
-
-Verify that the account exists:
-
-```bash
-sudo mysql barkea_resort -e \
-"SELECT id, username, role, status FROM users WHERE role = 'admin';"
-```
-
-The account should have the role `admin` and status `active`.
-
-### 4. Remove the Temporary Script
-
-After successful account creation, remove the script:
-
-```bash
-rm tests/create_admin.php
-```
-The administrator creation script must not remain accessible in the deployed project or be committed to Git.
-
-### Log In
-
-Open:
-```text
-https://barkea.local
-```
-Sign in using the administrator credentials created during initialization.
-
-**Security note:** Never store plaintext administrator passwords in the repository, database scripts, README, or version-control history.
-
 ## 7. Apache and HTTPS Configuration
 
 The verified local deployment uses:
